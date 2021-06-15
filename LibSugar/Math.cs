@@ -272,107 +272,107 @@ namespace LibSugar
 
         public static sbyte Min(this sbyte a, sbyte b) => Math.Min(a, b);
         public static sbyte Max(this sbyte a, sbyte b) => Math.Max(a, b);
-        public static sbyte Max(this sbyte a, params sbyte[] args) => (new[] { a }).Concat(args).Max();
+        public static sbyte Max(this sbyte a, params sbyte[] args) => args.Prepend(a).Max();
         public static sbyte Max(params sbyte[] args) => args.Max();
-        public static sbyte Min(this sbyte a, params sbyte[] args) => (new[] { a }).Concat(args).Min();
+        public static sbyte Min(this sbyte a, params sbyte[] args) => args.Prepend(a).Min();
         public static sbyte Min(params sbyte[] args) => args.Min();
 
         public static byte Min(this byte a, byte b) => Math.Min(a, b);
         public static byte Max(this byte a, byte b) => Math.Max(a, b);
-        public static byte Max(this byte a, params byte[] args) => (new[] { a }).Concat(args).Max();
+        public static byte Max(this byte a, params byte[] args) => args.Prepend(a).Max();
         public static byte Max(params byte[] args) => args.Max();
-        public static byte Min(this byte a, params byte[] args) => (new[] { a }).Concat(args).Min();
+        public static byte Min(this byte a, params byte[] args) => args.Prepend(a).Min();
         public static byte Min(params byte[] args) => args.Min();
 
         public static short Min(this short a, short b) => Math.Min(a, b);
         public static short Max(this short a, short b) => Math.Max(a, b);
-        public static short Max(this short a, params short[] args) => (new[] { a }).Concat(args).Max();
+        public static short Max(this short a, params short[] args) => args.Prepend(a).Max();
         public static short Max(params short[] args) => args.Max();
-        public static short Min(this short a, params short[] args) => (new[] { a }).Concat(args).Min();
+        public static short Min(this short a, params short[] args) => args.Prepend(a).Min();
         public static short Min(params short[] args) => args.Min();
 
         public static ushort Min(this ushort a, ushort b) => Math.Min(a, b);
         public static ushort Max(this ushort a, ushort b) => Math.Max(a, b);
-        public static ushort Max(this ushort a, params ushort[] args) => (new[] { a }).Concat(args).Max();
+        public static ushort Max(this ushort a, params ushort[] args) => args.Prepend(a).Max();
         public static ushort Max(params ushort[] args) => args.Max();
-        public static ushort Min(this ushort a, params ushort[] args) => (new[] { a }).Concat(args).Min();
+        public static ushort Min(this ushort a, params ushort[] args) => args.Prepend(a).Min();
         public static ushort Min(params ushort[] args) => args.Min();
 
         public static int Min(this int a, int b) => Math.Min(a, b);
         public static int Max(this int a, int b) => Math.Max(a, b);
-        public static int Max(this int a, params int[] args) => (new[] { a }).Concat(args).Max();
+        public static int Max(this int a, params int[] args) => args.Prepend(a).Max();
         public static int Max(params int[] args) => args.Max();
-        public static int Min(this int a, params int[] args) => (new[] { a }).Concat(args).Min();
+        public static int Min(this int a, params int[] args) => args.Prepend(a).Min();
         public static int Min(params int[] args) => args.Min();
 
         public static uint Min(this uint a, uint b) => Math.Min(a, b);
         public static uint Max(this uint a, uint b) => Math.Max(a, b);
-        public static uint Max(this uint a, params uint[] args) => (new[] { a }).Concat(args).Max();
+        public static uint Max(this uint a, params uint[] args) => args.Prepend(a).Max();
         public static uint Max(params uint[] args) => args.Max();
-        public static uint Min(this uint a, params uint[] args) => (new[] { a }).Concat(args).Min();
+        public static uint Min(this uint a, params uint[] args) => args.Prepend(a).Min();
         public static uint Min(params uint[] args) => args.Min();
 
         public static long Min(this long a, long b) => Math.Min(a, b);
         public static long Max(this long a, long b) => Math.Max(a, b);
-        public static long Max(this long a, params long[] args) => (new[] { a }).Concat(args).Max();
+        public static long Max(this long a, params long[] args) => args.Prepend(a).Max();
         public static long Max(params long[] args) => args.Max();
-        public static long Min(this long a, params long[] args) => (new[] { a }).Concat(args).Min();
+        public static long Min(this long a, params long[] args) => args.Prepend(a).Min();
         public static long Min(params long[] args) => args.Min();
 
         public static ulong Min(this ulong a, ulong b) => Math.Min(a, b);
         public static ulong Max(this ulong a, ulong b) => Math.Max(a, b);
-        public static ulong Max(this ulong a, params ulong[] args) => (new[] { a }).Concat(args).Max();
+        public static ulong Max(this ulong a, params ulong[] args) => args.Prepend(a).Max();
         public static ulong Max(params ulong[] args) => args.Max();
-        public static ulong Min(this ulong a, params ulong[] args) => (new[] { a }).Concat(args).Min();
+        public static ulong Min(this ulong a, params ulong[] args) => args.Prepend(a).Min();
         public static ulong Min(params ulong[] args) => args.Min();
 
         public static nint Min(this nint a, nint b) => a <= b ? a : b;
         public static nint Max(this nint a, nint b) => a >= b ? a : b;
-        public static nint Max(this nint a, params nint[] args) => (new[] { a }).Concat(args).Max();
+        public static nint Max(this nint a, params nint[] args) => args.Prepend(a).Max();
         public static nint Max(params nint[] args) => args.Max();
-        public static nint Min(this nint a, params nint[] args) => (new[] { a }).Concat(args).Min();
+        public static nint Min(this nint a, params nint[] args) => args.Prepend(a).Min();
         public static nint Min(params nint[] args) => args.Min();
 
         public static nuint Min(this nuint a, nuint b) => a <= b ? a : b;
         public static nuint Max(this nuint a, nuint b) => a >= b ? a : b;
-        public static nuint Max(this nuint a, params nuint[] args) => (new[] { a }).Concat(args).Max();
+        public static nuint Max(this nuint a, params nuint[] args) => args.Prepend(a).Max();
         public static nuint Max(params nuint[] args) => args.Max();
-        public static nuint Min(this nuint a, params nuint[] args) => (new[] { a }).Concat(args).Min();
+        public static nuint Min(this nuint a, params nuint[] args) => args.Prepend(a).Min();
         public static nuint Min(params nuint[] args) => args.Min();
 
         public static BigInteger Min(this BigInteger a, BigInteger b) => BigInteger.Min(a, b);
         public static BigInteger Max(this BigInteger a, BigInteger b) => BigInteger.Max(a, b);
-        public static BigInteger Max(this BigInteger a, params BigInteger[] args) => (new[] { a }).Concat(args).Max();
+        public static BigInteger Max(this BigInteger a, params BigInteger[] args) => args.Prepend(a).Max();
         public static BigInteger Max(params BigInteger[] args) => args.Max();
-        public static BigInteger Min(this BigInteger a, params BigInteger[] args) => (new[] { a }).Concat(args).Min();
+        public static BigInteger Min(this BigInteger a, params BigInteger[] args) => args.Prepend(a).Min();
         public static BigInteger Min(params BigInteger[] args) => args.Min();
 
         public static Half Min(this Half a, Half b) => a < b || Half.IsNaN(a) ? a : b;
         public static Half Max(this Half a, Half b) => a > b || Half.IsNaN(a) ? a : b;
-        public static Half Max(this Half a, params Half[] args) => (new[] { a }).Concat(args).Max();
+        public static Half Max(this Half a, params Half[] args) => args.Prepend(a).Max();
         public static Half Max(params Half[] args) => args.Max();
-        public static Half Min(this Half a, params Half[] args) => (new[] { a }).Concat(args).Min();
+        public static Half Min(this Half a, params Half[] args) => args.Prepend(a).Min();
         public static Half Min(params Half[] args) => args.Min();
 
         public static float Min(this float a, float b) => Math.Min(a, b);
         public static float Max(this float a, float b) => Math.Max(a, b);
-        public static float Max(this float a, params float[] args) => (new[] { a }).Concat(args).Max();
+        public static float Max(this float a, params float[] args) => args.Prepend(a).Max();
         public static float Max(params float[] args) => args.Max();
-        public static float Min(this float a, params float[] args) => (new[] { a }).Concat(args).Min();
+        public static float Min(this float a, params float[] args) => args.Prepend(a).Min();
         public static float Min(params float[] args) => args.Min();
 
         public static double Min(this double a, double b) => Math.Min(a, b);
         public static double Max(this double a, double b) => Math.Max(a, b);
-        public static double Max(this double a, params double[] args) => (new[] { a }).Concat(args).Max();
+        public static double Max(this double a, params double[] args) => args.Prepend(a).Max();
         public static double Max(params double[] args) => args.Max();
-        public static double Min(this double a, params double[] args) => (new[] { a }).Concat(args).Min();
+        public static double Min(this double a, params double[] args) => args.Prepend(a).Min();
         public static double Min(params double[] args) => args.Min();
 
         public static decimal Min(this decimal a, decimal b) => Math.Min(a, b);
         public static decimal Max(this decimal a, decimal b) => Math.Max(a, b);
-        public static decimal Max(this decimal a, params decimal[] args) => (new[] { a }).Concat(args).Max();
+        public static decimal Max(this decimal a, params decimal[] args) => args.Prepend(a).Max();
         public static decimal Max(params decimal[] args) => args.Max();
-        public static decimal Min(this decimal a, params decimal[] args) => (new[] { a }).Concat(args).Min();
+        public static decimal Min(this decimal a, params decimal[] args) => args.Prepend(a).Min();
         public static decimal Min(params decimal[] args) => args.Min();
 
         #endregion
