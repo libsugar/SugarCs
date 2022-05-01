@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31402.337
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32319.34
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibSugar", "LibSugar\LibSugar.csproj", "{CCB3367B-70C3-4ACF-A92F-70FE5F45B70D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibSugar", "LibSugar\LibSugar.csproj", "{CCB3367B-70C3-4ACF-A92F-70FE5F45B70D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,4 +23,3 @@ Global
 		SolutionGuid = {4833DC48-816B-4877-A831-A0B3DC24FE79}
 	EndGlobalSection
 EndGlobal
-

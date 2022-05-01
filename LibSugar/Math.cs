@@ -1,3 +1,6 @@
+#if NETSTANDARD
+using NInt.MinMaxValue;
+#endif
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
@@ -395,7 +398,11 @@ namespace LibSugar
         private static nint AbsHelper(nint v)
         {
             Contract.Requires(v < 0, "AbsHelper should only be called for negative values! (hack for JIT inlining)");
+#if NETSTANDARD
+            if (v == NIntMinMaxValue.MinValue) return Math.Abs(int.MinValue); // throw Overflow
+#else
             if (v == nint.MinValue) return Math.Abs(int.MinValue); // throw Overflow
+#endif
             Contract.EndContractBlock();
             return -v;
         }
