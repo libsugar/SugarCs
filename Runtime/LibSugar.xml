@@ -1,0 +1,430 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>LibSugar</name>
+    </assembly>
+    <members>
+        <member name="T:LibSugar.IBox`1">
+            <summary>
+            Pack the value into the box so that it is passed by reference
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="T:LibSugar.IRef`1">
+            <summary>
+            Pack the value into the box so that it is passed by reference
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="T:LibSugar.Box`1">
+            <summary>
+            Pack the value into the box so that it is passed by reference
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="Value"></param>
+        </member>
+        <member name="M:LibSugar.Box`1.#ctor(`0)">
+            <summary>
+            Pack the value into the box so that it is passed by reference
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="Value"></param>
+        </member>
+        <member name="P:LibSugar.Box`1.Value">
+            <summary></summary>
+        </member>
+        <member name="T:LibSugar.Ref`1">
+            <summary>
+            Pack the value into the box so that it is passed by reference
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:LibSugar.Sugar.Box``1(``0)">
+            <summary>
+            Pack the value into the box so that it is passed by reference
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="v"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LibSugar.Sugar.Ref``1(``0)">
+            <summary>
+            Pack the value into the box so that it is passed by reference
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="v"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LibSugar.Sugar.Identity``1(``0)">
+            <summary>
+            Identity function
+            </summary>
+        </member>
+        <member name="M:LibSugar.Sugar.Empty">
+            <summary>
+            Do nothing
+            </summary>
+        </member>
+        <member name="M:LibSugar.Sugar.TODO(System.String)">
+            <summary>
+            throw TODO
+            </summary>
+            <param name="message">TODO message</param>
+            <exception cref="T:System.NotImplementedException"></exception>
+        </member>
+        <member name="M:LibSugar.Sugar.TODO(System.String,System.Exception)">
+            <summary>
+            throw TODO
+            </summary>
+            <param name="message">TODO message</param>
+            <param name="inner">Inner Exception</param>
+            <exception cref="T:System.NotImplementedException"></exception>
+        </member>
+        <member name="M:LibSugar.Sugar.TODO(System.Exception)">
+            <summary>
+            throw TODO
+            </summary>
+            <param name="inner">Inner Exception</param>
+            <exception cref="T:System.NotImplementedException"></exception>
+        </member>
+        <member name="M:LibSugar.Sugar.TODO``1(System.String)">
+            <summary>
+            throw TODO
+            </summary>
+            <typeparam name="T">Return type</typeparam>
+            <param name="message">TODO message</param>
+            <returns></returns>
+            <exception cref="T:System.NotImplementedException"></exception>
+        </member>
+        <member name="M:LibSugar.Sugar.TODO``1(System.String,System.Exception)">
+            <summary>
+            throw TODO
+            </summary>
+            <typeparam name="T">Return type</typeparam>
+            <param name="message">TODO message</param>
+            <param name="inner">Inner Exception</param>
+            <returns></returns>
+            <exception cref="T:System.NotImplementedException"></exception>
+        </member>
+        <member name="M:LibSugar.Sugar.TODO``1(System.Exception)">
+            <summary>
+            throw TODO
+            </summary>
+            <typeparam name="T">Return type</typeparam>
+            <param name="inner">Inner Exception</param>
+            <returns></returns>
+            <exception cref="T:System.NotImplementedException"></exception>
+        </member>
+        <member name="M:LibSugar.Sugar.Abort">
+            <summary>
+            Task that will never continue
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:LibSugar.LibMath">
+            <summary>
+            Math Ex
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.E">
+            <summary>
+            <c>e</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.PI">
+            <summary>
+            <c>π</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.PI2">
+            <summary>
+            <c>2π</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.DEG_PER_RAD">
+            <summary>
+            <c>180 ÷ π</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.RAD_PER_DEG">
+            <summary>
+            <c>180 ÷ π</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt1">
+            <summary>
+            <c>√1</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt2">
+            <summary>
+            <c>√2</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt3">
+            <summary>
+            <c>√3</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt4">
+            <summary>
+            <c>√4</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt5">
+            <summary>
+            <c>√5</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt6">
+            <summary>
+            <c>√6</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt7">
+            <summary>
+            <c>√7</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt8">
+            <summary>
+            <c>√8</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt9">
+            <summary>
+            <c>√9</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt10">
+            <summary>
+            <c>√10</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.GoldenRatio">
+            <summary>
+            <c>ϕ | φ</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Khinchin">
+            <summary>
+            <c>K</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Conway">
+            <summary>
+            <c>λ</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Champernowne">
+            <summary>
+            <c>C10</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Euler">
+            <summary>
+            <c>γ</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.E_F">
+            <summary>
+            <c>e</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.PI_F">
+            <summary>
+            <c>π</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.PI2_F">
+            <summary>
+            <c>2π</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.DEG_PER_RAD_F">
+            <summary>
+            <c>180 ÷ π</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.RAD_PER_DEG_F">
+            <summary>
+            <c>180 ÷ π</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt1_F">
+            <summary>
+            <c>√1</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt2_F">
+            <summary>
+            <c>√2</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt3_F">
+            <summary>
+            <c>√3</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt4_F">
+            <summary>
+            <c>√4</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt5_F">
+            <summary>
+            <c>√5</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt6_F">
+            <summary>
+            <c>√6</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt7_F">
+            <summary>
+            <c>√7</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt8_F">
+            <summary>
+            <c>√8</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt9_F">
+            <summary>
+            <c>√9</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt10_F">
+            <summary>
+            <c>√10</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.GoldenRatio_F">
+            <summary>
+            <c>ϕ | φ</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Khinchin_F">
+            <summary>
+            <c>K</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Conway_F">
+            <summary>
+            <c>λ</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Champernowne_F">
+            <summary>
+            <c>C10</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Euler_F">
+            <summary>
+            <c>γ</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.E_M">
+            <summary>
+            <c>e</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.PI_M">
+            <summary>
+            <c>π</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.PI2_M">
+            <summary>
+            <c>2π</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.DEG_PER_RAD_M">
+            <summary>
+            <c>180 ÷ π</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.RAD_PER_DEG_M">
+            <summary>
+            <c>180 ÷ π</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt1_M">
+            <summary>
+            <c>√1</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt2_M">
+            <summary>
+            <c>√2</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt3_M">
+            <summary>
+            <c>√3</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt4_M">
+            <summary>
+            <c>√4</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt5_M">
+            <summary>
+            <c>√5</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt6_M">
+            <summary>
+            <c>√6</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt7_M">
+            <summary>
+            <c>√7</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt8_M">
+            <summary>
+            <c>√8</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt9_M">
+            <summary>
+            <c>√9</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Sqrt10_M">
+            <summary>
+            <c>√10</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.GoldenRatio_M">
+            <summary>
+            <c>ϕ | φ</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Khinchin_M">
+            <summary>
+            <c>K</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Conway_M">
+            <summary>
+            <c>λ</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Champernowne_M">
+            <summary>
+            <c>C10</c>
+            </summary>
+        </member>
+        <member name="F:LibSugar.LibMath.Euler_M">
+            <summary>
+            <c>γ</c>
+            </summary>
+        </member>
+    </members>
+</doc>

@@ -2,25 +2,25 @@
 
 [![NPM](https://img.shields.io/npm/v/com.libsugar.sugar)](https://www.npmjs.com/package/com.libsugar.sugar)
 [![Nuget](https://img.shields.io/nuget/v/LibSugar)](https://www.nuget.org/packages/LibSugar/)
-[![openupm](https://img.shields.io/npm/v/com.libsugar.sugar?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/com.libsugar.sugar/)
+[![openupm](https://img.shields.io/npm/v/com.libsugar.sugar?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.cn/packages/com.libsugar.sugar/)
 ![MIT](https://img.shields.io/github/license/libsugar/SugarCs)
 
-Like syntactic sugar, but is library
+类似语法糖，但是是库
 
-## Installation
+## 安装
 
 - [Nuget](https://www.nuget.org/packages/LibSugar/)
   ```
   dotnet add package LibSugar --version <version>
   ```
-  or
+  或
   ```
   <PackageReference Include="LibSugar" Version="<version>" />
   ```
 
-- Unity Package by [npmjs](https://www.npmjs.com/package/com.libsugar.sugar)
+- Unity Package 由 [npmjs](https://www.npmjs.com/package/com.libsugar.sugar)
 
-  Edit your `Packages/manifest.json` file like this
+  如下编辑你的 `Packages/manifest.json` 文件
 
   ```json
   {
@@ -38,6 +38,6 @@ Like syntactic sugar, but is library
     }
   }
   ```
-  or use gui in unity editor  
-  config `Project Settings -> Package Manager -> Scoped Registeries`  
-  then add package in package manager  
+  或者在 unity 编辑器中操作  
+  配置 `Project Settings -> Package Manager -> Scoped Registeries`  
+  然后在包管理器中添加包  

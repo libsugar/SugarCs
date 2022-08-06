@@ -1,0 +1,38 @@
+{
+  "name": "com.libsugar.sugar",
+  "displayName": "Sugar",
+  "version": "0.1.1",
+  "unity": "2021.1",
+  "description": "Like syntactic sugar, but is library",
+  "files": [
+    "/Runtime/**/*.meta",
+    "/Runtime/**/*.dll",
+    "/Runtime/**/*.pdb",
+    "/Runtime/**/*.xml",
+    "Runtime.meta",
+    "CHANGELOG.md",
+    "CHANGELOG.md.meta",
+    "CHANGELOG.CN.md",
+    "CHANGELOG.CN.md.meta",
+    "LICENSE",
+    "LICENSE/meta",
+    "README.md",
+    "README.md.meta",
+    "README.CN.md",
+    "README.CN.md.meta",
+    "package.json.meta"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/libsugar/SugarCs.git"
+  },
+  "keywords": [
+    "unity", "libsugar", "utility"
+  ],
+  "author": "libsugar",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/libsugar/SugarCs/issues"
+  },
+  "homepage": "https://github.com/libsugar/SugarCs#readme"
+}

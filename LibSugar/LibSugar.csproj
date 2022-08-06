@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	<Version>0.1.0</Version>
-    <TargetFrameworks>netstandard2.1;net5.0</TargetFrameworks>
+	<Version>0.1.1</Version>
+    <TargetFrameworks>netstandard2.1;net5.0;net6.0</TargetFrameworks>
     <Nullable>enable</Nullable>
 	<LangVersion>10.0</LangVersion>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
@@ -13,6 +13,7 @@
 	<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 	<Description>Like syntactic sugar, but is library</Description>
 	<PackageIcon>libsugar.dotnet.png</PackageIcon>
+	<GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,5 +29,9 @@
 	<None Include="..\libsugar.png" Pack="true" PackagePath="" />
 	<None Include="..\libsuga.socialr.png" Pack="true" PackagePath="" />
   </ItemGroup>
+	
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="copy &quot;$(OutDir)\*.*&quot; &quot;$(SolutionDir)\Runtime&quot;" />
+  </Target>
 
 </Project>
