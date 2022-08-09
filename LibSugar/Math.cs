@@ -1,4 +1,4 @@
-#if NETSTANDARD
+#if NETSTANDARD && !UNITY
 using NInt.MinMaxValue;
 #endif
 using System;
@@ -350,6 +350,8 @@ namespace LibSugar
         public static BigInteger Min(this BigInteger a, params BigInteger[] args) => args.Prepend(a).Min();
         public static BigInteger Min(params BigInteger[] args) => args.Min();
 
+#if !UNITY
+
         public static Half Min(this Half a, Half b) => a < b || Half.IsNaN(a) ? a : b;
         public static Half Max(this Half a, Half b) => a > b || Half.IsNaN(a) ? a : b;
         public static Half Max(this Half a, params Half[] args) => args.Prepend(a).Max();
@@ -357,6 +359,7 @@ namespace LibSugar
         public static Half Min(this Half a, params Half[] args) => args.Prepend(a).Min();
         public static Half Min(params Half[] args) => args.Min();
 
+#endif
         public static float Min(this float a, float b) => Math.Min(a, b);
         public static float Max(this float a, float b) => Math.Max(a, b);
         public static float Max(this float a, params float[] args) => args.Prepend(a).Max();
@@ -381,6 +384,8 @@ namespace LibSugar
         #endregion
 
         #region Abs
+
+#if !UNITY
 
         public static sbyte Abs(this sbyte v) => Math.Abs(v);
         public static byte Abs(this byte v) => v;
@@ -415,6 +420,8 @@ namespace LibSugar
         public static double Abs(this double v) => Math.Abs(v);
         public static decimal Abs(this decimal v) => Math.Abs(v);
 
+#endif
+
         #endregion
 
         #region Remap
@@ -430,7 +437,9 @@ namespace LibSugar
         public static nint Remap(this nint v, nint low1, nint high1, nint low2, nint high2) => low2 + (v - low1) * (high2 - low2) / (high1 - low1);
         public static nuint Remap(this nuint v, nuint low1, nuint high1, nuint low2, nuint high2) => low2 + (v - low1) * (high2 - low2) / (high1 - low1);
         public static BigInteger Remap(this BigInteger v, BigInteger low1, BigInteger high1, BigInteger low2, BigInteger high2) => low2 + (v - low1) * (high2 - low2) / (high1 - low1);
+#if !UNITY
         public static Half Remap(this Half v, Half low1, Half high1, Half low2, Half high2) => (Half)Remap((float)v, (float)low1, (float)high1, (float)low2, (float)high2);
+#endif
         public static float Remap(this float v, float low1, float high1, float low2, float high2) => low2 + (v - low1) * (high2 - low2) / (high1 - low1);
         public static double Remap(this double v, double low1, double high1, double low2, double high2) => low2 + (v - low1) * (high2 - low2) / (high1 - low1);
         public static decimal Remap(this decimal v, decimal low1, decimal high1, decimal low2, decimal high2) => low2 + (v - low1) * (high2 - low2) / (high1 - low1);
@@ -450,7 +459,9 @@ namespace LibSugar
         public static nint Clamp(this nint v, nint min, nint max) => v < min ? min : v > max ? max : v;
         public static nuint Clamp(this nuint v, nuint min, nuint max) => v < min ? min : v > max ? max : v;
         public static BigInteger Clamp(this BigInteger v, BigInteger min, BigInteger max) => v < min ? min : v > max ? max : v;
+#if !UNITY
         public static Half Clamp(this Half v, Half min, Half max) => v < min ? min : v > max ? max : v;
+#endif
         public static float Clamp(this float v, float min, float max) => Math.Clamp(v, min, max);
         public static double Clamp(this double v, double min, double max) => Math.Clamp(v, min, max);
         public static decimal Clamp(this decimal v, decimal min, decimal max) => Math.Clamp(v, min, max);
@@ -567,7 +578,9 @@ namespace LibSugar
             }
             return ret;
         }
+#if !UNITY
         public static Half Pow(this Half v, Half exp) => (Half)Pow((float)v, (float)exp);
+#endif
         public static float Pow(this float v, float exp) => MathF.Pow(v, exp);
         public static double Pow(this double v, double exp) => Math.Pow(v, exp);
 
