@@ -115,6 +115,25 @@
             <returns></returns>
             <exception cref="T:System.NotImplementedException"></exception>
         </member>
+        <member name="M:LibSugar.Sugar.Alloc``1(System.Buffers.ArrayPool{``0},System.Int32)">
+            <summary>
+            Rent a array by RAII
+            </summary>
+            <typeparam name="T">The type of the objects that are in the resource pool</typeparam>
+            <param name="pool">The ArrayPool</param>
+            <param name="minimumLength">The minimum length of the array</param>
+            <returns></returns>
+        </member>
+        <member name="M:LibSugar.Sugar.Alloc``1(System.Buffers.ArrayPool{``0},System.Int32,System.Boolean)">
+            <summary>
+            Rent a array by RAII
+            </summary>
+            <typeparam name="T">The type of the objects that are in the resource pool</typeparam>
+            <param name="pool">The ArrayPool</param>
+            <param name="minimumLength">The minimum length of the array</param>
+            <param name="clearArray">Indicates whether the contents of the buffer should be cleared before reuse</param>
+            <returns></returns>
+        </member>
         <member name="M:LibSugar.Sugar.Abort">
             <summary>
             Task that will never continue
@@ -425,6 +444,240 @@
             <summary>
             <c>γ</c>
             </summary>
+        </member>
+        <member name="T:LibSugar.IRAII`1">
+            <summary>
+            RAII
+            </summary>
+        </member>
+        <member name="P:LibSugar.IRAII`1.Value">
+            <summary>
+            Wrapped value
+            </summary>
+        </member>
+        <member name="T:LibSugar.PooledArray`1">
+            <summary>
+            RAII wrap for ArrayPool
+            </summary>
+        </member>
+        <member name="P:LibSugar.PooledArray`1.Value">
+            <summary>
+            The Array
+            </summary>
+        </member>
+        <member name="M:LibSugar.PooledArray`1.Dispose">
+            <summary>
+            Return the array
+            </summary>
+        </member>
+        <member name="M:LibSugar.PooledArray`1.Finalize">
+            <summary>
+            Return the array
+            </summary>
+        </member>
+        <member name="P:LibSugar.PooledArray`1.Item(System.Int32)">
+            <summary>
+            Get value ref in array
+            </summary>
+        </member>
+        <member name="P:LibSugar.PooledArray`1.Item(System.Int64)">
+            <summary>
+            Get value ref in array
+            </summary>
+        </member>
+        <member name="M:LibSugar.PooledArray`1.op_Implicit(LibSugar.PooledArray{`0})~`0[]">
+            <summary>
+            implicit to array
+            </summary>
+        </member>
+        <member name="M:LibSugar.PooledArray`1.op_Equality(LibSugar.PooledArray{`0},LibSugar.PooledArray{`0})">
+            <summary>==</summary>
+        </member>
+        <member name="M:LibSugar.PooledArray`1.op_Inequality(LibSugar.PooledArray{`0},LibSugar.PooledArray{`0})">
+            <summary>!=</summary>
+        </member>
+        <member name="P:LibSugar.PooledArray`1.SyncRoot">
+            <summary>
+            Gets an object that can be used to synchronize access to the System.Array
+            </summary>
+        </member>
+        <member name="P:LibSugar.PooledArray`1.LongLength">
+            <summary>
+            Gets a 64-bit integer that represents the total number of elements in all the dimensions of the System.Array
+            </summary>
+        </member>
+        <member name="P:LibSugar.PooledArray`1.Length">
+            <summary>
+            Gets the total number of elements in all the dimensions of the System.Array
+            </summary>
+            <exception cref="T:System.OverflowException">The array is multidimensional and contains more than System.Int32.MaxValue elements</exception>
+        </member>
+        <member name="P:LibSugar.PooledArray`1.IsSynchronized">
+            <summary>
+            Gets a value indicating whether access to the System.Array is synchronized (thread safe)
+            </summary>
+        </member>
+        <member name="P:LibSugar.PooledArray`1.IsReadOnly">
+            <summary>
+            Gets a value indicating whether the System.Array is read-only
+            </summary>
+        </member>
+        <member name="P:LibSugar.PooledArray`1.IsFixedSize">
+            <summary>
+            Gets a value indicating whether the System.Array has a fixed size
+            </summary>
+        </member>
+        <member name="P:LibSugar.PooledArray`1.Rank">
+            <summary>
+            Gets the rank (number of dimensions) of the System.Array. For example, a one-dimensional array returns 1, a two-dimensional array returns 2, and so on
+            </summary>
+        </member>
+        <member name="M:LibSugar.PooledArray`1.Clone">
+            <summary>
+            Creates a shallow copy of the System.Array.
+            </summary>
+            <returns>A shallow copy of the System.Array.</returns>
+        </member>
+        <member name="M:LibSugar.PooledArray`1.CopyTo(System.Array,System.Int64)">
+            <summary>
+            Copies all the elements of the current one-dimensional array to the specified one-dimensional array starting at the specified destination array index<br/>
+            The index is specified as a 64-bit integer
+            </summary>
+            <param name="array">The one-dimensional array that is the destination of the elements copied from the current array</param>
+            <param name="index">A 64-bit integer that represents the index in array at which copying begins</param>
+            <exception cref="T:System.ArgumentNullException">array is null</exception>
+            <exception cref="T:System.ArgumentOutOfRangeException">index is outside the range of valid indexes for array</exception>
+            <exception cref="T:System.ArgumentException">array is multidimensional. -or- The number of elements in the source array is greater 
+            than the available number of elements from index to the end of the destination array</exception>
+            <exception cref="T:System.ArrayTypeMismatchException">The type of the source System.Array cannot be cast automatically to the type of the destination array</exception>
+            <exception cref="T:System.RankException">The source System.Array is multidimensional</exception>
+            <exception cref="T:System.InvalidCastException">At least one element in the source System.Array cannot be cast to the type of destination array</exception>
+        </member>
+        <member name="M:LibSugar.PooledArray`1.CopyTo(System.Array,System.Int32)">
+            <summary>
+            Copies all the elements of the current one-dimensional array to the specified
+            one-dimensional array starting at the specified destination array index. 
+            The index is specified as a 32-bit integer.
+            </summary>
+            <param name="array">The one-dimensional array that is the destination of the elements copied from the current array.</param>
+            <param name="index">A 32-bit integer that represents the index in array at which copying begins</param>
+            <exception cref="T:System.ArgumentNullException">array is null</exception>
+            <exception cref="T:System.ArgumentOutOfRangeException">index is less than the lower bound of array</exception>
+            <exception cref="T:System.ArgumentException">array is multidimensional. -or- The number of elements in the source array is
+            greater than the available number of elements from index to the end of the destination array</exception>
+            <exception cref="T:System.ArrayTypeMismatchException">The type of the source System.Array cannot be cast automatically to the type of the destination array</exception>
+            <exception cref="T:System.RankException">The source array is multidimensional</exception>
+            <exception cref="T:System.InvalidCastException">At least one element in the source System.Array cannot be cast to the type of destination array</exception>
+        </member>
+        <member name="M:LibSugar.PooledArray`1.GetEnumerator">
+            <summary>
+            Returns an System.Collections.IEnumerator for the System.Array.
+            </summary>
+            <returns>An System.Collections.IEnumerator for the System.Array.</returns>
+        </member>
+        <member name="M:LibSugar.PooledArray`1.Initialize">
+            <summary>
+            Initializes every element of the value-type System.Array by calling the parameterless constructor of the value type
+            </summary>
+        </member>
+        <member name="M:LibSugar.PooledArray`1.CopyTo(System.Memory{`0})">
+            <summary>
+            Copies the contents of the array into a memory region.
+            </summary>
+            <param name="destination">The memory to copy items into.</param>
+            <exception cref="T:System.ArgumentException">The destination is shorter than the source array</exception>
+        </member>
+        <member name="M:LibSugar.PooledArray`1.CopyTo(System.Span{`0})">
+            <summary>
+            Copies the contents of the array into the span.
+            </summary>
+            <param name="destination">The span to copy items into.</param>
+            <exception cref="T:System.ArgumentException">The destination Span is shorter than the source array</exception>
+        </member>
+        <member name="M:LibSugar.PooledArray`1.AsSpan(System.Range)">
+            <summary>
+            Creates a new span over a portion of a target array defined by a System.Range value.
+            </summary>
+            <param name="range">The range of the array to convert.</param>
+            <returns>The span representation of the array.</returns>
+        </member>
+        <member name="M:LibSugar.PooledArray`1.AsSpan(System.Int32,System.Int32)">
+            <summary>
+            Creates a new span over the portion of the target array beginning at a specified position for a specified length.
+            </summary>
+            <param name="start">The index at which to begin the span.</param>
+            <param name="length">The number of items in the span.</param>
+            <returns>The span representation of the array.</returns>
+            <exception cref="T:System.ArrayTypeMismatchException">array is covariant, and the array's type is not exactly T[]".</exception>
+            <exception cref="T:System.ArgumentOutOfRangeException">start, length, or start + length is not in the range of text.</exception>
+        </member>
+        <member name="M:LibSugar.PooledArray`1.AsSpan(System.Int32)">
+            <summary>
+            Creates a new span over a portion of the target array starting at a specified position to the end of the array.
+            </summary>
+            <param name="start">The initial index from which the array will be converted.</param>
+            <returns>The span representation of the array.</returns>
+        </member>
+        <member name="M:LibSugar.PooledArray`1.AsSpan">
+            <summary>
+            Creates a new span over a target array.
+            </summary>
+            <returns>The span representation of the array.</returns>
+        </member>
+        <member name="M:LibSugar.PooledArray`1.AsSpan(System.Index)">
+            <summary>
+            Creates a new span over the portion of the target array defined by an System.Index value.
+            </summary>
+            <param name="startIndex">The starting index.</param>
+            <returns>The span representation of the array.</returns>
+        </member>
+        <member name="M:LibSugar.PooledArray`1.AsMemory(System.Range)">
+            <summary>
+            Creates a new memory region over the portion of the target array beginning at inclusive start index of the range and ending at the exclusive end index of the range.
+            </summary>
+            <param name="range">The range to convert from the array.</param>
+            <returns>The memory representation of the whole or part of the array.</returns>
+        </member>
+        <member name="M:LibSugar.PooledArray`1.AsMemory(System.Int32,System.Int32)">
+            <summary>
+            Creates a new memory region over the portion of the target array beginning at a specified position with a specified length.
+            </summary>
+            <param name="start">The index at which to begin the memory region.</param>
+            <param name="length">The number of items in the memory region.</param>
+            <returns>The memory representation of the whole or part of the array.</returns>
+            <exception cref="T:System.ArrayTypeMismatchException">array is covariant, and the array's type is not exactly T[].</exception>
+            <exception cref="T:System.ArgumentOutOfRangeException">start, length, or start + length is not in the range of array.</exception>
+        </member>
+        <member name="M:LibSugar.PooledArray`1.AsMemory(System.Int32)">
+            <summary>
+            Creates a new memory region over the portion of the target array starting at   a specified position to the end of the array.
+            </summary>
+            <param name="start"> The index at which to begin the memory.</param>
+            <returns>The memory representation of the whole or part of the array.</returns>
+            <exception cref="T:System.ArrayTypeMismatchException">array is covariant, and the array's type is not exactly T[].</exception>
+            <exception cref="T:System.ArgumentOutOfRangeException">start, length, or start + length is not in the range of array.</exception>
+        </member>
+        <member name="M:LibSugar.PooledArray`1.AsMemory">
+            <summary>
+             Creates a new memory region over the target array.
+            </summary>
+            <returns>The memory representation of the whole or part of the array.</returns>
+        </member>
+        <member name="M:LibSugar.PooledArray`1.AsMemory(System.Index)">
+            <summary>
+            Creates a new memory region over the portion of the target array starting at a specified index to the end of the array.
+            </summary>
+            <param name="startIndex">The first position of the array.</param>
+            <returns>The memory representation of the whole or part of the array.</returns>
+        </member>
+        <member name="M:LibSugar.PooledArray`1.Equals(System.Object)">
+            <summary>Equals</summary>
+        </member>
+        <member name="M:LibSugar.PooledArray`1.Equals(LibSugar.PooledArray{`0})">
+            <summary>Equals</summary>
+        </member>
+        <member name="M:LibSugar.PooledArray`1.GetHashCode">
+            <summary>GetHashCode</summary>
         </member>
     </members>
 </doc>
