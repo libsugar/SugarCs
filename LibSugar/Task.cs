@@ -5,14 +5,13 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace LibSugar
+namespace LibSugar;
+
+public static partial class Sugar
 {
-    public static partial class Sugar
-    {
-        /// <summary>
-        /// Task that will never continue
-        /// </summary>
-        /// <returns></returns>
-        public static Task Abort() => Task.Delay(Timeout.Infinite);
-    }
+    /// <summary>
+    /// Task that will never continue
+    /// </summary>
+    /// <returns></returns>
+    public static Task Abort() => Task.Delay(Timeout.Infinite);
 }
