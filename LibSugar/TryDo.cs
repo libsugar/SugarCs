@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 #endif
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Collections.ObjectModel;
 #if NET6_0_OR_GREATER
 using System.Text.Json.Nodes;
 #endif
@@ -21,6 +22,11 @@ public static partial class Sugar
 
     public static V? TryGet<K, V>(this ConditionalWeakTable<K, V> self, K key) where K : class where V : class =>
         self.TryGetValue(key, out var val) ? val : null;
+
+#if NET6_0_OR_GREATER
+    public static JsonNode? TryGetProperty(this JsonObject self, string propertyName) =>
+        self.TryGetPropertyValue(propertyName, out var val) ? val : null;
+#endif
 }
 
 public static partial class SugarClass
@@ -80,7 +86,22 @@ public static partial class SugarClass
         self.TryGetValue(key, out var val) ? val : null;
 
 #if !NETSTANDARD
+    public static V? TryGet<K, V>(this IImmutableDictionary<K, V> self, K key) where V : class =>
+        self.TryGetValue(key, out var val) ? val : null;
+
+    public static T? TryGet<T>(this IImmutableSet<T> self, T key) where T : class =>
+        self.TryGetValue(key, out var val) ? val : null;
+
     public static V? TryGet<K, V>(this ImmutableDictionary<K, V> self, K key) where V : class =>
+        self.TryGetValue(key, out var val) ? val : null;
+
+    public static T? TryGet<T>(this ImmutableHashSet<T> self, T key) where T : class =>
+        self.TryGetValue(key, out var val) ? val : null;
+
+    public static V? TryGet<K, V>(this ImmutableSortedDictionary<K, V> self, K key) where V : class =>
+        self.TryGetValue(key, out var val) ? val : null;
+
+    public static T? TryGet<T>(this ImmutableSortedSet<T> self, T key) where T : class =>
         self.TryGetValue(key, out var val) ? val : null;
 #endif
 
@@ -91,9 +112,24 @@ public static partial class SugarClass
     public static T? TryGet<T>(this JsonValue self) where T : class =>
         self.TryGetValue<T>(out var val) ? val : null;
 
-    public static JsonNode? TryGetProperty<T>(this JsonObject self, string propertyName) =>
-        self.TryGetPropertyValue(propertyName, out var val) ? val : null;
+    public static E? TryPeek<E, P>(this PriorityQueue<E, P> self, out P priority) where E : class =>
+        self.TryPeek(out var val, out priority) ? val : null;
+
+    public static E? TryDequeue<E, P>(this PriorityQueue<E, P> self, out P priority) where E : class =>
+        self.TryDequeue(out var val, out priority) ? val : null;
 #endif
+
+    public static T? TryPeek<T>(this Queue<T> self) where T : class =>
+        self.TryPeek(out var val) ? val : null;
+
+    public static T? TryDequeue<T>(this Queue<T> self) where T : class =>
+        self.TryDequeue(out var val) ? val : null;
+
+    public static T? TryPeek<T>(this Stack<T> self) where T : class =>
+        self.TryPeek(out var val) ? val : null;
+
+    public static T? TryPop<T>(this Stack<T> self) where T : class =>
+        self.TryPop(out var val) ? val : null;
 
     public static T? TryFirst<T>(this IEnumerable<T> self) where T : class
     {
@@ -101,6 +137,11 @@ public static partial class SugarClass
         return null;
     }
 
+    public static V? TryGet<K, V>(this KeyedCollection<K, V> self, K key) where V : class =>
+        self.TryGetValue(key, out var val) ? val : null;
+
+    public static V? TryGet<K, V>(this ReadOnlyDictionary<K, V> self, K key) where V : class =>
+        self.TryGetValue(key, out var val) ? val : null;
 }
 
 public static partial class SugarStruct
@@ -160,7 +201,22 @@ public static partial class SugarStruct
         self.TryGetValue(key, out var val) ? val : null;
 
 #if !NETSTANDARD
+    public static V? TryGet<K, V>(this IImmutableDictionary<K, V> self, K key) where V : struct =>
+        self.TryGetValue(key, out var val) ? val : null;
+
+    public static T? TryGet<T>(this IImmutableSet<T> self, T key) where T : struct =>
+        self.TryGetValue(key, out var val) ? val : null;
+
     public static V? TryGet<K, V>(this ImmutableDictionary<K, V> self, K key) where V : struct =>
+        self.TryGetValue(key, out var val) ? val : null;
+
+    public static T? TryGet<T>(this ImmutableHashSet<T> self, T key) where T : struct =>
+        self.TryGetValue(key, out var val) ? val : null;
+
+    public static V? TryGet<K, V>(this ImmutableSortedDictionary<K, V> self, K key) where V : struct =>
+        self.TryGetValue(key, out var val) ? val : null;
+
+    public static T? TryGet<T>(this ImmutableSortedSet<T> self, T key) where T : struct =>
         self.TryGetValue(key, out var val) ? val : null;
 #endif
 
@@ -171,9 +227,24 @@ public static partial class SugarStruct
     public static T? TryGet<T>(this JsonValue self) where T : struct =>
         self.TryGetValue<T>(out var val) ? val : null;
 
-    public static JsonNode? TryGetProperty<T>(this JsonObject self, string propertyName) =>
-        self.TryGetPropertyValue(propertyName, out var val) ? val : null;
+    public static E? TryPeek<E, P>(this PriorityQueue<E, P> self, out P priority) where E : struct =>
+        self.TryPeek(out var val, out priority) ? val : null;
+
+    public static E? TryDequeue<E, P>(this PriorityQueue<E, P> self, out P priority) where E : struct =>
+        self.TryDequeue(out var val, out priority) ? val : null;
 #endif
+
+    public static T? TryPeek<T>(this Queue<T> self) where T : struct =>
+        self.TryPeek(out var val) ? val : null;
+
+    public static T? TryDequeue<T>(this Queue<T> self) where T : struct =>
+        self.TryDequeue(out var val) ? val : null;
+
+    public static T? TryPeek<T>(this Stack<T> self) where T : struct =>
+        self.TryPeek(out var val) ? val : null;
+
+    public static T? TryPop<T>(this Stack<T> self) where T : struct =>
+        self.TryPop(out var val) ? val : null;
 
     public static T? TryFirst<T>(this IEnumerable<T> self) where T : struct
     {
@@ -181,4 +252,9 @@ public static partial class SugarStruct
         return null;
     }
 
+    public static V? TryGet<K, V>(this KeyedCollection<K, V> self, K key) where V : struct =>
+        self.TryGetValue(key, out var val) ? val : null;
+
+    public static V? TryGet<K, V>(this ReadOnlyDictionary<K, V> self, K key) where V : struct =>
+        self.TryGetValue(key, out var val) ? val : null;
 }

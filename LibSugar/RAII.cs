@@ -22,7 +22,7 @@ public interface IRAII<T> : IDisposable
 /// <summary>
 /// RAII wrap for ArrayPool
 /// </summary>
-public class PooledArray<T> : IRAII<T[]>, ICollection, IEnumerable, IList, IStructuralComparable, IStructuralEquatable, ICloneable, ICollection<T>, IEnumerable<T>, IList<T>, IReadOnlyCollection<T>, IReadOnlyList<T>, IEquatable<PooledArray<T>?>
+public class PooledArray<T> : IRAII<T[]>, IList, IStructuralComparable, IStructuralEquatable, ICloneable, IList<T>, IReadOnlyList<T>, IEquatable<PooledArray<T>?>
 {
     readonly ArrayPool<T> pool;
     readonly bool clearArray;
