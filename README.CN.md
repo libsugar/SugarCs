@@ -1,5 +1,6 @@
 # LibSugar 
 
+[![.NET](https://github.com/libsugar/SugarCs/actions/workflows/dotnet.yml/badge.svg)](https://github.com/libsugar/SugarCs/actions/workflows/dotnet.yml)
 [![NPM](https://img.shields.io/npm/v/com.libsugar.sugar)](https://www.npmjs.com/package/com.libsugar.sugar)
 [![Nuget](https://img.shields.io/nuget/v/LibSugar)](https://www.nuget.org/packages/LibSugar/)
 [![openupm](https://img.shields.io/npm/v/com.libsugar.sugar?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.cn/packages/com.libsugar.sugar/)

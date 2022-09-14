@@ -1,0 +1,44 @@
+name: Docs
+
+on:
+  release:
+    types: [published]
+    branches: ["master"]
+
+  workflow_dispatch:
+
+jobs:
+  gen_doc:
+    
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: master
+    - name: merge master -> docs
+      uses: devmasx/merge-branch@master
+      with:
+        github_token: ${{ github.token }}
+        type: now
+        from_branch: master
+        target_branch: docs
+    - uses: actions/checkout@v3
+      with:
+        ref: docs
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: |
+          6.0.x
+          5.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Install DocFx
+      run: Install-Package docfx.console
+    - name: Gen Docs
+      run: docfx
+    - uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        branch: docs
+        commit_message: '[Automated] gen doc'
