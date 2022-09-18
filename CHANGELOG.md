@@ -1,3 +1,8 @@
+# 0.4.0
+  - Add LazyBy
+  - Add LazyFunc
+  - Add Assert
+
 # 0.3.0
   - Add TryXXX
   - Add Unit

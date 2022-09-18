@@ -1,3 +1,8 @@
+# 0.4.0
+  - 添加 LazyBy
+  - 添加 LazyFunc
+  - 添加 Assert
+
 # 0.3.0
   - 添加 TryXXX
   - 添加 Unit

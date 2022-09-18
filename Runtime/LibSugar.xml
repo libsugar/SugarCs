@@ -4,41 +4,6 @@
         <name>LibSugar</name>
     </assembly>
     <members>
-        <member name="T:LibSugar.IBox`1">
-            <summary>
-            Pack the value into the box so that it is passed by reference
-            </summary>
-            <typeparam name="T"></typeparam>
-        </member>
-        <member name="T:LibSugar.IRef`1">
-            <summary>
-            Pack the value into the box so that it is passed by reference
-            </summary>
-            <typeparam name="T"></typeparam>
-        </member>
-        <member name="T:LibSugar.Box`1">
-            <summary>
-            Pack the value into the box so that it is passed by reference
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="Value"></param>
-        </member>
-        <member name="M:LibSugar.Box`1.#ctor(`0)">
-            <summary>
-            Pack the value into the box so that it is passed by reference
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="Value"></param>
-        </member>
-        <member name="P:LibSugar.Box`1.Value">
-            <summary></summary>
-        </member>
-        <member name="T:LibSugar.Ref`1">
-            <summary>
-            Pack the value into the box so that it is passed by reference
-            </summary>
-            <typeparam name="T"></typeparam>
-        </member>
         <member name="M:LibSugar.Sugar.Box``1(``0)">
             <summary>
             Pack the value into the box so that it is passed by reference
@@ -139,6 +104,87 @@
             Task that will never continue
             </summary>
             <returns></returns>
+        </member>
+        <member name="T:LibSugar.IBox`1">
+            <summary>
+            Pack the value into the box so that it is passed by reference
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="T:LibSugar.IRef`1">
+            <summary>
+            Pack the value into the box so that it is passed by reference
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="T:LibSugar.Box`1">
+            <summary>
+            Pack the value into the box so that it is passed by reference
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="Value"></param>
+        </member>
+        <member name="M:LibSugar.Box`1.#ctor(`0)">
+            <summary>
+            Pack the value into the box so that it is passed by reference
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="Value"></param>
+        </member>
+        <member name="P:LibSugar.Box`1.Value">
+            <summary></summary>
+        </member>
+        <member name="T:LibSugar.Ref`1">
+            <summary>
+            Pack the value into the box so that it is passed by reference
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="T:LibSugar.LazyBy`1">
+            <summary>
+            Lazy value with params
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:LibSugar.LazyBy`1.Create``1(System.Func{``0},System.Func{`0},System.Boolean)">
+            <summary>
+            Make an assoc Lazy
+            </summary>
+        </member>
+        <member name="P:LibSugar.LazyBy`1.IsValueCreated">
+            <summary>
+            Check is the value created
+            </summary>
+        </member>
+        <member name="P:LibSugar.LazyBy`1.Value">
+            <summary>
+            Get the value
+            </summary>
+        </member>
+        <member name="T:LibSugar.LazyFunc">
+            <summary>
+            Lazy functions
+            </summary>
+        </member>
+        <member name="M:LibSugar.LazyFunc.Create``1(System.Func{``0},System.Boolean)">
+            <summary>
+            Make a lazy function
+            </summary>
+        </member>
+        <member name="M:LibSugar.LazyFunc.Create``2(System.Func{``0,``1},System.Boolean)">
+            <summary>
+            Make a lazy function
+            </summary>
+        </member>
+        <member name="M:LibSugar.LazyFunc.Create``3(System.Func{``0,``1,``2},System.Boolean)">
+            <summary>
+            Make a lazy function
+            </summary>
+        </member>
+        <member name="M:LibSugar.LazyFunc.Create``4(System.Func{``0,``1,``2,``3},System.Boolean)">
+            <summary>
+            Make a lazy function
+            </summary>
         </member>
         <member name="T:LibSugar.LibMath">
             <summary>

@@ -54,3 +54,15 @@ public static partial class Sugar
         }
     }
 }
+
+public static partial class SugarClass
+{
+    public static T? TryGet<T, E>(this Result<T, E> self) where T : class => self.IsOk ? self.Value : null;
+    public static E? TryGetError<T, E>(this Result<T, E> self) where E : class => self.IsErr ? self.Error : null;
+}
+
+public static partial class SugarStruct
+{
+    public static T? TryGet<T, E>(this Result<T, E> self) where T : struct => self.IsOk ? self.Value : null;
+    public static E? TryGetError<T, E>(this Result<T, E> self) where E : struct => self.IsErr ? self.Error : null;
+}

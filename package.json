@@ -1,7 +1,7 @@
 {
   "name": "com.libsugar.sugar",
   "displayName": "Sugar",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "unity": "2021.1",
   "description": "Like syntactic sugar, but is library",
   "files": [

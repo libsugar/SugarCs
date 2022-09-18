@@ -80,3 +80,13 @@ public static partial class Sugar
         }
     }
 }
+
+public static partial class SugarClass
+{
+    public static T? TryGet<T>(this Option<T> self) where T : class => self.Has ? self.Value : null;
+}
+
+public static partial class SugarStruct
+{
+    public static T? TryGet<T>(this Option<T> self) where T : struct => self.Has ? self.Value : null;
+}
