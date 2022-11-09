@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace LibSugar;
 
@@ -7,11 +8,13 @@ public static partial class Sugar
     /// <summary>
     /// Identity function
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T Identity<T>(T v) => v;
 
     /// <summary>
     /// Do nothing
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Empty() { }
 
     /// <summary>
@@ -19,6 +22,7 @@ public static partial class Sugar
     /// </summary>
     /// <param name="message">TODO message</param>
     /// <exception cref="NotImplementedException"></exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void TODO(string? message = "TODO")
     {
         throw new NotImplementedException(message);
@@ -29,6 +33,7 @@ public static partial class Sugar
     /// <param name="message">TODO message</param>
     /// <param name="inner">Inner Exception</param>
     /// <exception cref="NotImplementedException"></exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void TODO(string? message, Exception? inner)
     {
         throw new NotImplementedException(message, inner);
@@ -38,6 +43,7 @@ public static partial class Sugar
     /// </summary>
     /// <param name="inner">Inner Exception</param>
     /// <exception cref="NotImplementedException"></exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void TODO(Exception? inner)
     {
         throw new NotImplementedException("TODO", inner);
@@ -49,6 +55,7 @@ public static partial class Sugar
     /// <param name="message">TODO message</param>
     /// <returns></returns>
     /// <exception cref="NotImplementedException"></exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T TODO<T>(string? message = "TODO")
     {
         throw new NotImplementedException(message);
@@ -61,6 +68,7 @@ public static partial class Sugar
     /// <param name="inner">Inner Exception</param>
     /// <returns></returns>
     /// <exception cref="NotImplementedException"></exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T TODO<T>(string? message, Exception? inner)
     {
         throw new NotImplementedException(message, inner);
@@ -72,6 +80,7 @@ public static partial class Sugar
     /// <param name="inner">Inner Exception</param>
     /// <returns></returns>
     /// <exception cref="NotImplementedException"></exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T TODO<T>(Exception? inner)
     {
         throw new NotImplementedException("TODO", inner);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,8 +9,11 @@ namespace LibSugar;
 
 public static partial class Sugar
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IEnumerable<T> Seq<T>(this T v) => v.Repeat(1);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IEnumerable<T> Seq<T>(this T v, params T[] args) => args.Prepend(v);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IEnumerable<T> Repeat<T>(this T v, int count) => Enumerable.Repeat(v, count);
 
     public static string JoinStr<T>(this IEnumerable<T> iter) => string.Join(", ", iter);

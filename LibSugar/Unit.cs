@@ -2,6 +2,7 @@
 using System.Numerics;
 #endif
 using System;
+using System.Runtime.CompilerServices;
 
 namespace LibSugar;
 
@@ -12,5 +13,6 @@ public readonly record struct Unit
 {
     public static readonly Unit Instance = default;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override string ToString() => "Unit";
 }
