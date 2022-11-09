@@ -1,9 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+#if NET7_0_OR_GREATER
+using System.Numerics;
+#endif
 
 namespace LibSugar;
 
 public struct Option<T> : IBox<T>, IEquatable<Option<T>>
+#if NET7_0_OR_GREATER
+    , IEqualityOperators<Option<T>, Option<T>, bool>, IBitwiseOperators<Option<T>, Option<T>, Option<T>>
+#endif
 {
     internal bool has;
     internal T val;
@@ -64,6 +70,9 @@ public struct Option<T> : IBox<T>, IEquatable<Option<T>>
     public static Option<T> operator |(Option<T> left, Option<T> right) => left.Or(right);
     public static Option<T> operator &(Option<T> left, Option<T> right) => left.And(right);
     public static Option<T> operator ^(Option<T> left, Option<T> right) => left.Xor(right);
+#if NET7_0_OR_GREATER
+    static Option<T> IBitwiseOperators<Option<T>, Option<T>, Option<T>>.operator ~(Option<T> _) => throw new NotImplementedException();
+#endif
 }
 
 public static partial class Sugar

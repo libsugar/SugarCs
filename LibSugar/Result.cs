@@ -1,9 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+#if NET7_0_OR_GREATER
+using System.Numerics;
+#endif
 
 namespace LibSugar;
 
 public struct Result<T, E> : IEquatable<Result<T, E>>
+#if NET7_0_OR_GREATER
+    , IEqualityOperators<Result<T, E>, Result<T, E>, bool>, IBitwiseOperators<Result<T, E>, Result<T, E>, Result<T, E>>
+#endif
 {
     public static Result<T, E> Ok(T val) => new() { res = val };
     public static Result<T, E> Err(E err) => new() { err = new(err) };
@@ -38,6 +44,10 @@ public struct Result<T, E> : IEquatable<Result<T, E>>
 
     public static Result<T, E> operator |(Result<T, E> left, Result<T, E> right) => left.Or(right);
     public static Result<T, E> operator &(Result<T, E> left, Result<T, E> right) => left.And(right);
+#if NET7_0_OR_GREATER
+    static Result<T, E> IBitwiseOperators<Result<T, E>, Result<T, E>, Result<T, E>>.operator ^(Result<T, E> left, Result<T, E> right) => throw new NotImplementedException();
+    static Result<T, E> IBitwiseOperators<Result<T, E>, Result<T, E>, Result<T, E>>.operator ~(Result<T, E> _) => throw new NotImplementedException();
+#endif
 }
 
 public static partial class Sugar

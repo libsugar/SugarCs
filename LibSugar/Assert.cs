@@ -18,6 +18,10 @@ public static partial class Sugar
     public static T AssertSame<T>(this T self, T other) where T : class => ReferenceEquals(self, other) ? self : throw new AssertException($"Expect {other} but actually is {self}");
     public static T AssertNotSame<T>(this T self, T other) where T : class => !ReferenceEquals(self, other) ? self : throw new AssertException($"Expect not {other} but actually is {self}");
 
+#if NET7_0_OR_GREATER
+    public static T AssertZero<T>(this T v) where T : INumberBase<T> => v == T.Zero ? v : throw new AssertException($"Expect 0 but actually is {v}");
+#endif
+
     public static byte AssertZero(this byte v) => v == 0 ? v : throw new AssertException($"Expect 0 but actually is {v}");
     public static ushort AssertZero(this ushort v) => v == 0 ? v : throw new AssertException($"Expect 0 but actually is {v}");
     public static uint AssertZero(this uint v) => v == 0 ? v : throw new AssertException($"Expect 0 but actually is {v}");
@@ -36,12 +40,18 @@ public static partial class Sugar
     public static decimal AssertZero(this decimal v) => v == 0 ? v : throw new AssertException($"Expect 0 but actually is {v}");
     public static BigInteger AssertZero(this BigInteger v) => v == 0 ? v : throw new AssertException($"Expect 0 but actually is {v}");
 
+#if NET7_0_OR_GREATER
+    public static T AssertNotNaN<T>(this T v) where T : INumberBase<T> => !T.IsNaN(v) ? v : throw new AssertException($"Expect not NaN but actually is {v}");
+#endif
 #if !UNITY
     public static Half AssertNotNaN(this Half v) => !Half.IsNaN(v) ? v : throw new AssertException($"Expect not NaN but actually is {v}");
 #endif
     public static float AssertNotNaN(this float v) => !float.IsNaN(v) ? v : throw new AssertException($"Expect not NaN but actually is {v}");
     public static double AssertNotNaN(this double v) => !double.IsNaN(v) ? v : throw new AssertException($"Expect not NaN but actually is {v}");
 
+#if NET7_0_OR_GREATER
+    public static T AssertNaN<T>(this T v) where T : INumberBase<T> => T.IsNaN(v) ? v : throw new AssertException($"Expect NaN but actually is {v}");
+#endif
 #if !UNITY
     public static Half AssertNaN(this Half v) => Half.IsNaN(v) ? v : throw new AssertException($"Expect NaN but actually is {v}");
 #endif

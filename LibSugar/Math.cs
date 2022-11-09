@@ -14,7 +14,7 @@ namespace LibSugar;
 /// <summary>
 /// Math Ex
 /// </summary>
-public static class LibMath
+public static partial class LibMath
 {
     #region Consts
 
@@ -35,7 +35,7 @@ public static class LibMath
     /// </summary>
     public const double DEG_PER_RAD = 57.295779513082320876798154814105170332405472466564321549160243861;
     /// <summary>
-    /// <c>180 ÷ π</c>
+    /// <c>π ÷ 180</c>
     /// </summary>
     public const double RAD_PER_DEG = 0.0174532925199432957692369076848861271344287188854172545609719144;
     /// <summary>
@@ -120,7 +120,7 @@ public static class LibMath
     /// </summary>
     public const float DEG_PER_RAD_F = 57.295779513082320876798154814105170332405472466564321549160243861f;
     /// <summary>
-    /// <c>180 ÷ π</c>
+    /// <c>π ÷ 180</c>
     /// </summary>
     public const float RAD_PER_DEG_F = 0.0174532925199432957692369076848861271344287188854172545609719144f;
     /// <summary>
@@ -205,7 +205,7 @@ public static class LibMath
     /// </summary>
     public const decimal DEG_PER_RAD_M = 57.295779513082320876798154814105170332405472466564321549160243861m;
     /// <summary>
-    /// <c>180 ÷ π</c>
+    /// <c>π ÷ 180</c>
     /// </summary>
     public const decimal RAD_PER_DEG_M = 0.0174532925199432957692369076848861271344287188854172545609719144m;
     /// <summary>
@@ -272,6 +272,11 @@ public static class LibMath
     #endregion
 
     #region MinMax
+
+#if NET7_0_OR_GREATER
+    public static T Min<T>(this T a, T b) where T : INumber<T> => T.Min(a, b);
+    public static T Max<T>(this T a, T b) where T : INumber<T> => T.Max(a, b);
+#endif
 
     public static sbyte Min(this sbyte a, sbyte b) => Math.Min(a, b);
     public static sbyte Max(this sbyte a, sbyte b) => Math.Max(a, b);
@@ -387,6 +392,10 @@ public static class LibMath
 
 #if !UNITY
 
+#if NET7_0_OR_GREATER
+    public static T Abs<T>(this T v) where T : INumberBase<T> => T.Abs(v);
+#endif
+
     public static sbyte Abs(this sbyte v) => Math.Abs(v);
     public static byte Abs(this byte v) => v;
 
@@ -399,6 +408,9 @@ public static class LibMath
     public static long Abs(this long v) => Math.Abs(v);
     public static ulong Abs(this ulong v) => v;
 
+#if NET6_0_OR_GREATER
+    public static nint Abs(this nint v) => Math.Abs(v);
+#else
     public static nint Abs(this nint v) => v >= 0 ? v : AbsHelper(v);
     private static nint AbsHelper(nint v)
     {
@@ -406,16 +418,20 @@ public static class LibMath
 #if NETSTANDARD
         if (v == NIntMinMaxValue.MinValue) return Math.Abs(int.MinValue); // throw Overflow
 #else
-            if (v == nint.MinValue) return Math.Abs(int.MinValue); // throw Overflow
+        if (v == nint.MinValue) return Math.Abs(int.MinValue); // throw Overflow
 #endif
         Contract.EndContractBlock();
         return -v;
     }
+#endif
     public static nuint Abs(this nuint v) => v;
 
     public static BigInteger Abs(this BigInteger v) => BigInteger.Abs(v);
-
+#if NET7_0_OR_GREATER
+    public static Half Abs(this Half v) => Half.Abs(v);
+#else
     public static Half Abs(this Half v) => v >= (Half)0 ? v : (Half)(-(float)v);
+#endif
     public static float Abs(this float v) => Math.Abs(v);
     public static double Abs(this double v) => Math.Abs(v);
     public static decimal Abs(this decimal v) => Math.Abs(v);
@@ -425,6 +441,12 @@ public static class LibMath
     #endregion
 
     #region Remap
+
+#if NET7_0_OR_GREATER
+    public static T Remap<T>(this T v, T low1, T high1, T low2, T high2)
+        where T : IAdditionOperators<T, T, T>, ISubtractionOperators<T, T, T>, IMultiplyOperators<T, T, T>, IDivisionOperators<T, T, T>
+        => low2 + (v - low1) * (high2 - low2) / (high1 - low1);
+#endif
 
     public static sbyte Remap(this sbyte v, sbyte low1, sbyte high1, sbyte low2, sbyte high2) => (sbyte)(low2 + (v - low1) * (high2 - low2) / (high1 - low1));
     public static byte Remap(this byte v, byte low1, byte high1, byte low2, byte high2) => (byte)(low2 + (v - low1) * (high2 - low2) / (high1 - low1));
@@ -448,6 +470,10 @@ public static class LibMath
 
     #region Clamp
 
+#if NET7_0_OR_GREATER
+    public static T Clamp<T>(this T v, T min, T max) where T : INumber<T> => T.Clamp(v, min, max);
+#endif
+
     public static sbyte Clamp(this sbyte v, sbyte min, sbyte max) => Math.Clamp(v, min, max);
     public static byte Clamp(this byte v, byte min, byte max) => Math.Clamp(v, min, max);
     public static short Clamp(this short v, short min, short max) => Math.Clamp(v, min, max);
@@ -456,11 +482,23 @@ public static class LibMath
     public static uint Clamp(this uint v, uint min, uint max) => Math.Clamp(v, min, max);
     public static long Clamp(this long v, long min, long max) => Math.Clamp(v, min, max);
     public static ulong Clamp(this ulong v, ulong min, ulong max) => Math.Clamp(v, min, max);
+#if NET6_0_OR_GREATER
+    public static nint Clamp(this nint v, nint min, nint max) => Math.Clamp(v, min, max);
+    public static nuint Clamp(this nuint v, nuint min, nuint max) => Math.Clamp(v, min, max);
+#else
     public static nint Clamp(this nint v, nint min, nint max) => v < min ? min : v > max ? max : v;
     public static nuint Clamp(this nuint v, nuint min, nuint max) => v < min ? min : v > max ? max : v;
+#endif
+#if NET7_0_OR_GREATER
+    public static BigInteger Clamp(this BigInteger v, BigInteger min, BigInteger max) => BigInteger.Clamp(v, min, max);
+#if !UNITY
+    public static Half Clamp(this Half v, Half min, Half max) => Half.Clamp(v, min, max);
+#endif
+#else
     public static BigInteger Clamp(this BigInteger v, BigInteger min, BigInteger max) => v < min ? min : v > max ? max : v;
 #if !UNITY
     public static Half Clamp(this Half v, Half min, Half max) => v < min ? min : v > max ? max : v;
+#endif
 #endif
     public static float Clamp(this float v, float min, float max) => Math.Clamp(v, min, max);
     public static double Clamp(this double v, double min, double max) => Math.Clamp(v, min, max);
@@ -470,6 +508,9 @@ public static class LibMath
 
     #region Pow
 
+#if NET7_0_OR_GREATER
+    public static T Pow<T>(this T v, T exp) where T : IPowerFunctions<T> => T.Pow(v, exp);
+#endif
     public static sbyte Pow(this sbyte v, uint exp)
     {
         sbyte ret = 1;
@@ -566,6 +607,7 @@ public static class LibMath
         }
         return ret;
     }
+    public static BigInteger Pow(this BigInteger v, int exp) => BigInteger.Pow(v, exp);
     public static BigInteger Pow(this BigInteger v, uint exp)
     {
         BigInteger ret = 1;
@@ -579,7 +621,11 @@ public static class LibMath
         return ret;
     }
 #if !UNITY
+#if NET7_0_OR_GREATER
+    public static Half Pow(this Half v, Half exp) => Half.Pow(v, exp);
+#else
     public static Half Pow(this Half v, Half exp) => (Half)Pow((float)v, (float)exp);
+#endif
 #endif
     public static float Pow(this float v, float exp) => MathF.Pow(v, exp);
     public static double Pow(this double v, double exp) => Math.Pow(v, exp);
@@ -587,6 +633,32 @@ public static class LibMath
     #endregion
 
     #region Cos Sin Tan
+
+#if NET7_0_OR_GREATER
+    public static T Sin<T>(this T v) where T : ITrigonometricFunctions<T> => T.Sin(v);
+    public static T SinPi<T>(this T v) where T : ITrigonometricFunctions<T> => T.SinPi(v);
+    public static T Sinh<T>(this T v) where T : IHyperbolicFunctions<T> => T.Sinh(v);
+
+    public static T Cos<T>(this T v) where T : ITrigonometricFunctions<T> => T.Cos(v);
+    public static T CosPi<T>(this T v) where T : ITrigonometricFunctions<T> => T.CosPi(v);
+    public static T Cosh<T>(this T v) where T : IHyperbolicFunctions<T> => T.Cosh(v);
+
+    public static T Tan<T>(this T v) where T : ITrigonometricFunctions<T> => T.Tan(v);
+    public static T TanPi<T>(this T v) where T : ITrigonometricFunctions<T> => T.TanPi(v);
+    public static T Tanh<T>(this T v) where T : IHyperbolicFunctions<T> => T.Tanh(v);
+
+    public static T Asin<T>(this T v) where T : ITrigonometricFunctions<T> => T.Asin(v);
+    public static T AsinPi<T>(this T v) where T : ITrigonometricFunctions<T> => T.AsinPi(v);
+    public static T Asinh<T>(this T v) where T : IHyperbolicFunctions<T> => T.Asinh(v);
+
+    public static T Acos<T>(this T v) where T : ITrigonometricFunctions<T> => T.Acos(v);
+    public static T AcosPi<T>(this T v) where T : ITrigonometricFunctions<T> => T.AcosPi(v);
+    public static T Acosh<T>(this T v) where T : IHyperbolicFunctions<T> => T.Acosh(v);
+
+    public static T Atan<T>(this T v) where T : ITrigonometricFunctions<T> => T.Atan(v);
+    public static T AtanPi<T>(this T v) where T : ITrigonometricFunctions<T> => T.AtanPi(v);
+    public static T Atanh<T>(this T v) where T : IHyperbolicFunctions<T> => T.Atanh(v);
+#endif
 
     public static float Sin(this float v) => MathF.Sin(v);
     public static double Sin(this double v) => Math.Sin(v);
@@ -631,12 +703,26 @@ public static class LibMath
 
     #region Exp
 
+#if NET7_0_OR_GREATER
+    public static T Exp<T>(this T v) where T : IExponentialFunctions<T> => T.Exp(v);
+    public static T Exp10<T>(this T v) where T : IExponentialFunctions<T> => T.Exp10(v);
+    public static T Exp10M1<T>(this T v) where T : IExponentialFunctions<T> => T.Exp10M1(v);
+    public static T Exp2<T>(this T v) where T : IExponentialFunctions<T> => T.Exp2(v);
+    public static T Exp2M1<T>(this T v) where T : IExponentialFunctions<T> => T.Exp2M1(v);
+    public static T ExpM1<T>(this T v) where T : IExponentialFunctions<T> => T.ExpM1(v);
+#endif
+
     public static float Exp(this float v) => MathF.Exp(v);
     public static double Exp(this double v) => Math.Exp(v);
 
     #endregion
 
     #region Rad Deg
+
+#if NET7_0_OR_GREATER
+    public static T Radians<T>(this T degress) where T : INumberBase<T>, IFloatingPointConstants<T> => degress * RadDegConsts<T>.RAD_PER_DEG;
+    public static T Degress<T>(this T radians) where T : INumberBase<T>, IFloatingPointConstants<T> => radians * RadDegConsts<T>.DEG_PER_RAD;
+#endif
 
     public static float Radians(this float degress) => degress * RAD_PER_DEG_F;
     public static double Radians(this double degress) => degress * RAD_PER_DEG;
@@ -647,5 +733,139 @@ public static class LibMath
     public static decimal Degress(this decimal radians) => radians * DEG_PER_RAD_M;
 
     #endregion
+
+    #region Round
+
+#if NET7_0_OR_GREATER
+    public static T Round<T>(this T v) where T : IFloatingPoint<T> => T.Round(v);
+#endif
+
+#if !UNITY
+#if NET7_0_OR_GREATER
+    public static Half Round(this Half v) => Half.Round(v);
+#else
+    public static Half Round(this Half v) => (Half)MathF.Round((float)v);
+#endif
+#endif
+    public static float Round(this float v) => MathF.Round(v);
+    public static double Round(this double v) => Math.Round(v);
+    public static decimal Round(this decimal v) => decimal.Round(v);
+
+    #endregion
+
+    #region Ceiling 
+
+#if NET7_0_OR_GREATER
+    public static T Ceiling<T>(this T v) where T : IFloatingPoint<T> => T.Ceiling(v);
+#endif
+
+#if !UNITY
+#if NET7_0_OR_GREATER
+    public static Half Ceiling(this Half v) => Half.Ceiling(v);
+#else
+    public static Half Ceiling(this Half v) => (Half)MathF.Ceiling((float)v);
+#endif
+#endif
+    public static float Ceiling(this float v) => MathF.Ceiling(v);
+    public static double Ceiling(this double v) => Math.Ceiling(v);
+    public static decimal Ceiling(this decimal v) => decimal.Ceiling(v);
+
+    #endregion
+
+    #region Floor  
+
+#if NET7_0_OR_GREATER
+    public static T Floor<T>(this T v) where T : IFloatingPoint<T> => T.Floor(v);
+#endif
+
+#if !UNITY
+#if NET7_0_OR_GREATER
+    public static Half Floor(this Half v) => Half.Floor(v);
+#else
+    public static Half Floor(this Half v) => (Half)MathF.Floor((float)v);
+#endif
+#endif
+    public static float Floor(this float v) => MathF.Floor(v);
+    public static double Floor(this double v) => Math.Floor(v);
+    public static decimal Floor(this decimal v) => decimal.Floor(v);
+
+    #endregion
+
+    #region Log
+
+#if NET7_0_OR_GREATER
+    public static T Log<T>(this T v) where T : ILogarithmicFunctions<T> => T.Log(v);
+    public static T Log<T>(this T v, T newBase) where T : ILogarithmicFunctions<T> => T.Log(v, newBase);
+    public static T Log10<T>(this T v) where T : ILogarithmicFunctions<T> => T.Log10(v);
+    public static T Log10P1<T>(this T v) where T : ILogarithmicFunctions<T> => T.Log10P1(v);
+    public static T Log2<T>(this T v) where T : ILogarithmicFunctions<T> => T.Log2(v);
+    public static T Log2P1<T>(this T v) where T : ILogarithmicFunctions<T> => T.Log2P1(v);
+    public static T LogP1<T>(this T v) where T : ILogarithmicFunctions<T> => T.LogP1(v);
+#endif
+
+    public static Half Log(this Half v) => (Half)MathF.Log((float)v);
+    public static float Log(this float v) => MathF.Log(v);
+    public static double Log(this double v) => Math.Log(v);
+
+
+    public static Half Log(this Half v, Half newBase) => (Half)MathF.Log((float)v, (float)newBase);
+    public static float Log(this float v, float newBase) => MathF.Log(v, newBase);
+    public static double Log(this double v, double newBase) => Math.Log(v, newBase);
+
+
+    public static Half Log10(this Half v) => (Half)MathF.Log10((float)v);
+    public static float Log10(this float v) => MathF.Log10(v);
+    public static double Log10(this double v) => Math.Log10(v);
+
+#if !NETSTANDARD
+    public static Half Log2(this Half v) => (Half)MathF.Log2((float)v);
+    public static float Log2(this float v) => MathF.Log2(v);
+    public static double Log2(this double v) => Math.Log2(v);
+#endif
+    #endregion
 }
 
+#region Consts
+
+#if NET7_0_OR_GREATER
+/// <summary></summary>
+public static class NumberConsts<T> where T : INumberBase<T>
+{
+    /// <summary><c>1</c></summary>
+    public static readonly T V1 = T.One;
+    /// <summary><c>2</c></summary>
+    public static readonly T V2 = V1 + V1;
+    /// <summary><c>3</c></summary>
+    public static readonly T V3 = V2 + V1;
+    /// <summary><c>4</c></summary>
+    public static readonly T V4 = V2 * V2;
+    /// <summary><c>5</c></summary>
+    public static readonly T V5 = V4 + V1;
+    /// <summary><c>6</c></summary>
+    public static readonly T V6 = V3 * V2;
+    /// <summary><c>7</c></summary>
+    public static readonly T V7 = V6 + V1;
+    /// <summary><c>8</c></summary>
+    public static readonly T V8 = V4 * V2;
+    /// <summary><c>9</c></summary>
+    public static readonly T V9 = V3 * V3;
+    /// <summary><c>10</c></summary>
+    public static readonly T V10 = V5 * V2;
+
+    /// <summary><c>90</c></summary>
+    public static readonly T V90 = V9 * V10;
+    /// <summary><c>180</c></summary>
+    public static readonly T V180 = V90 * V2;
+}
+
+/// <summary></summary>
+public static class RadDegConsts<T> where T : INumberBase<T>, IFloatingPointConstants<T>
+{
+    /// <summary><c>π ÷ 180</c></summary>
+    public static readonly T RAD_PER_DEG = T.Pi / NumberConsts<T>.V180;
+    /// <summary><c>180 ÷ π</c></summary>
+    public static readonly T DEG_PER_RAD = NumberConsts<T>.V180 / T.Pi;
+}
+#endif
+
+#endregion
