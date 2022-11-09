@@ -213,7 +213,7 @@
         </member>
         <member name="F:LibSugar.LibMath.RAD_PER_DEG">
             <summary>
-            <c>180 ÷ π</c>
+            <c>π ÷ 180</c>
             </summary>
         </member>
         <member name="F:LibSugar.LibMath.Sqrt1">
@@ -313,7 +313,7 @@
         </member>
         <member name="F:LibSugar.LibMath.RAD_PER_DEG_F">
             <summary>
-            <c>180 ÷ π</c>
+            <c>π ÷ 180</c>
             </summary>
         </member>
         <member name="F:LibSugar.LibMath.Sqrt1_F">
@@ -413,7 +413,7 @@
         </member>
         <member name="F:LibSugar.LibMath.RAD_PER_DEG_M">
             <summary>
-            <c>180 ÷ π</c>
+            <c>π ÷ 180</c>
             </summary>
         </member>
         <member name="F:LibSugar.LibMath.Sqrt1_M">
