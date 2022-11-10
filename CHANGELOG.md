@@ -1,3 +1,6 @@
+# 0.5.0
+  - Add generic math support (Requires .NET 7)
+
 # 0.4.0
   - Add LazyBy
   - Add LazyFunc
