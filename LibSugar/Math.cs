@@ -1122,24 +1122,28 @@ public static partial class LibMath
     public static T LogP1<T>(this T v) where T : ILogarithmicFunctions<T> => T.LogP1(v);
 #endif
 
+#if !UNITY
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Half Log(this Half v) => (Half)MathF.Log((float)v);
+#endif
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float Log(this float v) => MathF.Log(v);
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double Log(this double v) => Math.Log(v);
 
-
+#if !UNITY
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Half Log(this Half v, Half newBase) => (Half)MathF.Log((float)v, (float)newBase);
+#endif
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float Log(this float v, float newBase) => MathF.Log(v, newBase);
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double Log(this double v, double newBase) => Math.Log(v, newBase);
 
-
+#if !UNITY
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Half Log10(this Half v) => (Half)MathF.Log10((float)v);
+#endif
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float Log10(this float v) => MathF.Log10(v);
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1153,7 +1157,7 @@ public static partial class LibMath
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double Log2(this double v) => Math.Log2(v);
 #endif
-    #endregion
+#endregion
 }
 
 #region Consts
