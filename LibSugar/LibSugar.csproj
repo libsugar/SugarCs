@@ -17,12 +17,12 @@
     <DefineConstants Condition="'$(Configuration)' == 'Unity'">UNITY</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<NoWarn>CS1591</NoWarn>
-	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="NInt.MinMaxValue" Version="1.1.0" Condition="'$(TargetFramework)' == 'netstandard2.1' And '$(Configuration)' != 'Unity'" />
-	<PackageReference Include="Ultz.Bcl.Half" Version="1.0.0" Condition="'$(TargetFramework)' == 'netstandard2.1' And '$(Configuration)' != 'Unity'" />
+	  <PackageReference Include="Ultz.Bcl.Half" Version="1.0.0" Condition="'$(TargetFramework)' == 'netstandard2.1' And '$(Configuration)' != 'Unity'" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" Condition="'$(Configuration)' == 'Unity'" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,6 +44,8 @@
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Configuration)' == 'Unity' And '$(TargetFramework)' == 'netstandard2.1'">
     <Exec Command="copy &quot;$(OutDir)\*.*&quot; &quot;$(SolutionDir)\Runtime&quot;" />
+    <Exec Command="copy &quot;..\LibSugar.CodeGen\bin\Release\netstandard2.0\LibSugar.CodeGen.dll&quot; &quot;$(SolutionDir)\Runtime\LibSugar.CodeGen.dll&quot;" />
+    <Exec Command="copy &quot;..\LibSugar.CodeGen\bin\Release\netstandard2.0\LibSugar.CodeGen.pdb&quot; &quot;$(SolutionDir)\Runtime\LibSugar.CodeGen.pdb&quot;" />
   </Target>
 
 </Project>

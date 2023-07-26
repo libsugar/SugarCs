@@ -377,7 +377,7 @@ public class UnionGenerator : ISourceGenerator
     public readonly override string ToString() => Kind switch
     {{
         {string.Join("\n        ", to_strs.AsParallel().AsOrdered().Where(a => a != null).ToArray())}
-        _ => nameof({type_name}),
+        _ => ""{type_name}"",
     }};
 }}
 ";

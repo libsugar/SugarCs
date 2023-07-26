@@ -1,3 +1,10 @@
+# 0.6.0
+  - Add Union Generator
+  - Add `AtomicBool32`
+  - Add `IClone<T>`
+  - Add `IDynCast<T>`
+  - Add `IMovable` `Moved` `Movable<T>`
+
 # 0.5.0
   - Add generic math support (Requires .NET 7)
 

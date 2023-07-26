@@ -80,6 +80,9 @@
             <returns></returns>
             <exception cref="T:System.NotImplementedException"></exception>
         </member>
+        <member name="M:LibSugar.Sugar.Swap``1(``0@,``0)">
+            <summary>Exchange</summary>
+        </member>
         <member name="M:LibSugar.Sugar.Alloc``1(System.Buffers.ArrayPool{``0},System.Int32)">
             <summary>
             Rent a array by RAII
@@ -98,6 +101,43 @@
             <param name="minimumLength">The minimum length of the array</param>
             <param name="clearArray">Indicates whether the contents of the buffer should be cleared before reuse</param>
             <returns></returns>
+        </member>
+        <member name="M:LibSugar.Sugar.Cloned``1(LibSugar.PooledArray{``0})">
+            <summary>
+            Creates a deep(1) copy of the System.Array.
+            </summary>
+            <returns>A deep(1) copy of the System.Array.</returns>
+        </member>
+        <member name="M:LibSugar.Sugar.ForEach``1(System.Collections.Generic.IEnumerable{``0},System.Action{``0})">
+            <summary>ForEach for <see cref="T:System.Collections.Generic.IEnumerable`1"/></summary>
+        </member>
+        <member name="M:LibSugar.Sugar.ForEach``1(System.Collections.Generic.IEnumerable{``0},System.Func{``0,System.Boolean})">
+            <summary>
+            ForEach for <see cref="T:System.Collections.Generic.IEnumerable`1"/>
+            <para>Param <c>f</c> return <c>true</c> to continue, <c>false</c> to break</para>
+            </summary>
+            <param name="iter"></param>
+            <param name="f">Return <c>true</c> to continue, <c>false</c> to break</param>
+        </member>
+        <member name="M:LibSugar.Sugar.ForEach``2(System.Collections.Generic.IEnumerable{``0},System.Func{``0,LibSugar.Option{``1}})">
+            <summary>
+            ForEach for <see cref="T:System.Collections.Generic.IEnumerable`1"/>
+            <para>Param <c>f</c> return <see cref="P:LibSugar.Option`1.None"/> to continue, <see cref="M:LibSugar.Option`1.Some(`0)"/> to break and return a <c>R</c></para>
+            </summary>
+            <param name="iter"></param>
+            <param name="f">Return <see cref="P:LibSugar.Option`1.None"/> to continue, <see cref="M:LibSugar.Option`1.Some(`0)"/> to break and return a <c>R</c></param>
+        </member>
+        <member name="M:LibSugar.Sugar.IsNullOrWhiteSpace(System.String)">
+            <summary>Indicates whether a specified string is <c>null</c>, empty, or consists only of white-space characters.</summary>
+        </member>
+        <member name="M:LibSugar.Sugar.IsNullOrEmpty(System.String)">
+            <summary>Indicates whether the specified string is <c>null</c> or an empty string ("").</summary>
+        </member>
+        <member name="M:LibSugar.Sugar.Intern(System.String)">
+            <summary>Retrieves the system's reference to the specified <see cref="T:System.String"/>.</summary>
+        </member>
+        <member name="M:LibSugar.Sugar.IsInterned(System.String)">
+            <summary>Retrieves a reference to a specified <see cref="T:System.String"/>.</summary>
         </member>
         <member name="M:LibSugar.Sugar.Abort">
             <summary>
@@ -491,15 +531,17 @@
             <c>γ</c>
             </summary>
         </member>
-        <member name="T:LibSugar.IRAII`1">
-            <summary>
-            RAII
-            </summary>
+        <member name="T:LibSugar.IMovable`1">
+            <summary>Movable ownership</summary>
         </member>
-        <member name="P:LibSugar.IRAII`1.Value">
-            <summary>
-            Wrapped value
-            </summary>
+        <member name="P:LibSugar.IMovable`1.IsMoved">
+            <summary>Has been moved</summary>
+        </member>
+        <member name="M:LibSugar.IMovable`1.Move">
+            <summary>Move, take ownership, original value will skip destruction</summary>
+        </member>
+        <member name="M:LibSugar.Moved.Move">
+            <returns>Return wask moved</returns>
         </member>
         <member name="T:LibSugar.PooledArray`1">
             <summary>
@@ -511,6 +553,9 @@
             The Array
             </summary>
         </member>
+        <member name="M:LibSugar.PooledArray`1.#ctor(LibSugar.Owner{LibSugar.PooledArray{`0}})">
+            <summary>Move ctor</summary>
+        </member>
         <member name="M:LibSugar.PooledArray`1.Dispose">
             <summary>
             Return the array
@@ -520,6 +565,12 @@
             <summary>
             Return the array
             </summary>
+        </member>
+        <member name="P:LibSugar.PooledArray`1.IsMoved">
+            <summary>Has been moved</summary>
+        </member>
+        <member name="M:LibSugar.PooledArray`1.Move">
+            <summary>Move, take ownership, original value will skip destruction</summary>
         </member>
         <member name="P:LibSugar.PooledArray`1.Item(System.Int32)">
             <summary>
@@ -577,6 +628,12 @@
             <summary>
             Gets the rank (number of dimensions) of the System.Array. For example, a one-dimensional array returns 1, a two-dimensional array returns 2, and so on
             </summary>
+        </member>
+        <member name="M:LibSugar.PooledArray`1.System#ICloneable#Clone">
+            <summary>
+            Creates a shallow copy of the System.Array.
+            </summary>
+            <returns>A shallow copy of the System.Array.</returns>
         </member>
         <member name="M:LibSugar.PooledArray`1.Clone">
             <summary>
@@ -724,6 +781,15 @@
         </member>
         <member name="M:LibSugar.PooledArray`1.GetHashCode">
             <summary>GetHashCode</summary>
+        </member>
+        <member name="P:LibSugar.UnionAttribute.Name">
+            <summary>
+            Default name assoc
+            <code>
+            UnionName   :   Foo
+            EnumName    :   FooKind
+            </code>
+            </summary>
         </member>
     </members>
 </doc>
