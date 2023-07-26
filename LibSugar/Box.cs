@@ -36,7 +36,7 @@ public record Box<T>(T Value) : IBox<T>
 /// Pack the value into the box so that it is passed by reference
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public class Ref<T> : IRef<T>
+public record Ref<T> : IRef<T>
 {
     public T Value { get; set; }
 

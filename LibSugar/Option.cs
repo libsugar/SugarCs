@@ -11,8 +11,8 @@ public struct Option<T> : IBox<T>, IEquatable<Option<T>>
     , IEqualityOperators<Option<T>, Option<T>, bool>, IBitwiseOperators<Option<T>, Option<T>, Option<T>>
 #endif
 {
-    internal bool has;
     internal T val;
+    internal bool has;
 
     public Option(T val)
     {
@@ -57,9 +57,10 @@ public struct Option<T> : IBox<T>, IEquatable<Option<T>>
         return r;
     }
 
-    public override bool Equals(object obj) => obj is Option<T> option && Equals(option);
+    public override bool Equals(object? obj) => obj is Option<T> option && Equals(option);
 
-    public bool Equals(Option<T> other) => has == other.has && (!has || EqualityComparer<T>.Default.Equals(val, other.val));
+    public bool Equals(Option<T> other) =>
+        has == other.has && (!has || EqualityComparer<T>.Default.Equals(val, other.val));
 
     public override int GetHashCode() => HashCode.Combine(has, val);
 
@@ -88,6 +89,8 @@ public static partial class Sugar
             default: return new() { res = new() };
         }
     }
+
+    public static Option<T> Cloned<T>(this Option<T> o) where T : IClone<T> => o.has ? new(o.val.Clone()) : new();
 }
 
 public static partial class SugarClass

@@ -2,51 +2,53 @@
 using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading;
 
 namespace LibSugar;
 
-/// <summary>
-/// RAII
-/// </summary>
-public interface IRAII<T> : IDisposable
-{
-    /// <summary>
-    /// Wrapped value
-    /// </summary>
-    public T Value { get; }
-}
+#pragma warning disable CS8769
 
 #region Array
 
 /// <summary>
 /// RAII wrap for ArrayPool
 /// </summary>
-public class PooledArray<T> : IRAII<T[]>, IList, IStructuralComparable, IStructuralEquatable, ICloneable, IList<T>, IReadOnlyList<T>, IEquatable<PooledArray<T>?>
+public sealed class PooledArray<T> : IDisposable, IList, IStructuralComparable, IStructuralEquatable, ICloneable,
+    IList<T>, IReadOnlyList<T>, IEquatable<PooledArray<T>?>, IClone<T[]>, IMovable<PooledArray<T>>, IBox<T[]>
 {
-    readonly ArrayPool<T> pool;
-    readonly bool clearArray;
-
-    internal PooledArray(ArrayPool<T> pool, bool clearArray, T[] value)
-    {
-        this.pool = pool;
-        this.clearArray = clearArray;
-        Value = value;
-    }
+    private readonly ArrayPool<T> pool;
+    private T[] value;
+    private Moved moved;
+    private readonly bool clearArray;
 
     /// <summary>
     /// The Array
     /// </summary>
-    public T[] Value { get; }
+    public T[] Value => value;
 
-    int disposed = 0;
+    internal PooledArray(ArrayPool<T> pool, bool clearArray, T[] value)
+    {
+        this.pool = pool;
+        this.value = value;
+        moved = new(false);
+        this.clearArray = clearArray;
+    }
+
+    /// <summary>Move ctor</summary>
+    private PooledArray(Owner<PooledArray<T>> old)
+    {
+        pool = old.Value.pool;
+        value = Sugar.Swap(ref old.Value.value, null!);
+        moved = new(false);
+        clearArray = old.Value.clearArray;
+    }
+    
     /// <summary>
     /// Return the array
     /// </summary>
     public void Dispose()
     {
         GC.SuppressFinalize(this);
-        if (Interlocked.CompareExchange(ref disposed, 1, 0) != 0) return;
+        if (moved.Move()) return;
         pool.Return(Value, clearArray);
     }
 
@@ -54,6 +56,16 @@ public class PooledArray<T> : IRAII<T[]>, IList, IStructuralComparable, IStructu
     /// Return the array
     /// </summary>
     ~PooledArray() => Dispose();
+    
+    /// <summary>Has been moved</summary>
+    public bool IsMoved => moved.IsMoved;
+
+    /// <summary>Move, take ownership, original value will skip destruction</summary>
+    public PooledArray<T> Move()
+    {
+        if (moved.Move()) throw new MovedException();
+        return new(this.Owner());
+    }
 
     /// <summary>
     /// Get value ref in array
@@ -70,7 +82,9 @@ public class PooledArray<T> : IRAII<T[]>, IList, IStructuralComparable, IStructu
     public static implicit operator T[](PooledArray<T> self) => self.Value;
 
     /// <summary>==</summary>
-    public static bool operator ==(PooledArray<T>? left, PooledArray<T>? right) => EqualityComparer<PooledArray<T>>.Default.Equals(left!, right!);
+    public static bool operator ==(PooledArray<T>? left, PooledArray<T>? right) =>
+        EqualityComparer<PooledArray<T>>.Default.Equals(left!, right!);
+
     /// <summary>!=</summary>
     public static bool operator !=(PooledArray<T>? left, PooledArray<T>? right) => !(left == right);
 
@@ -110,7 +124,14 @@ public class PooledArray<T> : IRAII<T[]>, IList, IStructuralComparable, IStructu
     /// Creates a shallow copy of the System.Array.
     /// </summary>
     /// <returns>A shallow copy of the System.Array.</returns>
-    public object Clone() => Value.Clone();
+    object ICloneable.Clone() => Value.Clone();
+
+    /// <summary>
+    /// Creates a shallow copy of the System.Array.
+    /// </summary>
+    /// <returns>A shallow copy of the System.Array.</returns>
+    public T[] Clone() => (T[])Value.Clone();
+
     /// <summary>
     /// Copies all the elements of the current one-dimensional array to the specified one-dimensional array starting at the specified destination array index<br/>
     /// The index is specified as a 64-bit integer
@@ -125,6 +146,7 @@ public class PooledArray<T> : IRAII<T[]>, IList, IStructuralComparable, IStructu
     /// <exception cref="RankException">The source System.Array is multidimensional</exception>
     /// <exception cref="InvalidCastException">At least one element in the source System.Array cannot be cast to the type of destination array</exception>
     public void CopyTo(Array array, long index) => Value.CopyTo(array, index);
+
     /// <summary>
     /// Copies all the elements of the current one-dimensional array to the specified
     /// one-dimensional array starting at the specified destination array index. 
@@ -140,11 +162,13 @@ public class PooledArray<T> : IRAII<T[]>, IList, IStructuralComparable, IStructu
     /// <exception cref="RankException">The source array is multidimensional</exception>
     /// <exception cref="InvalidCastException">At least one element in the source System.Array cannot be cast to the type of destination array</exception>
     public void CopyTo(Array array, int index) => Value.CopyTo(array, index);
+
     /// <summary>
     /// Returns an System.Collections.IEnumerator for the System.Array.
     /// </summary>
     /// <returns>An System.Collections.IEnumerator for the System.Array.</returns>
     public IEnumerator GetEnumerator() => Value.GetEnumerator();
+
     /// <summary>
     /// Initializes every element of the value-type System.Array by calling the parameterless constructor of the value type
     /// </summary>
@@ -160,6 +184,7 @@ public class PooledArray<T> : IRAII<T[]>, IList, IStructuralComparable, IStructu
     /// <param name="destination">The memory to copy items into.</param>
     /// <exception cref="ArgumentException">The destination is shorter than the source array</exception>
     public void CopyTo(Memory<T> destination) => Value.CopyTo(destination);
+
     /// <summary>
     /// Copies the contents of the array into the span.
     /// </summary>
@@ -173,6 +198,7 @@ public class PooledArray<T> : IRAII<T[]>, IList, IStructuralComparable, IStructu
     /// <param name="range">The range of the array to convert.</param>
     /// <returns>The span representation of the array.</returns>
     public Span<T> AsSpan(Range range) => Value.AsSpan(range);
+
     /// <summary>
     /// Creates a new span over the portion of the target array beginning at a specified position for a specified length.
     /// </summary>
@@ -182,17 +208,20 @@ public class PooledArray<T> : IRAII<T[]>, IList, IStructuralComparable, IStructu
     /// <exception cref="ArrayTypeMismatchException">array is covariant, and the array's type is not exactly T[]".</exception>
     /// <exception cref="ArgumentOutOfRangeException">start, length, or start + length is not in the range of text.</exception>
     public Span<T> AsSpan(int start, int length) => Value.AsSpan(start, length);
+
     /// <summary>
     /// Creates a new span over a portion of the target array starting at a specified position to the end of the array.
     /// </summary>
     /// <param name="start">The initial index from which the array will be converted.</param>
     /// <returns>The span representation of the array.</returns>
     public Span<T> AsSpan(int start) => Value.AsSpan(start);
+
     /// <summary>
     /// Creates a new span over a target array.
     /// </summary>
     /// <returns>The span representation of the array.</returns>
     public Span<T> AsSpan() => Value.AsSpan();
+
     /// <summary>
     /// Creates a new span over the portion of the target array defined by an System.Index value.
     /// </summary>
@@ -206,6 +235,7 @@ public class PooledArray<T> : IRAII<T[]>, IList, IStructuralComparable, IStructu
     /// <param name="range">The range to convert from the array.</param>
     /// <returns>The memory representation of the whole or part of the array.</returns>
     public Memory<T> AsMemory(Range range) => Value.AsMemory(range);
+
     /// <summary>
     /// Creates a new memory region over the portion of the target array beginning at a specified position with a specified length.
     /// </summary>
@@ -215,6 +245,7 @@ public class PooledArray<T> : IRAII<T[]>, IList, IStructuralComparable, IStructu
     /// <exception cref="ArrayTypeMismatchException">array is covariant, and the array's type is not exactly T[].</exception>
     /// <exception cref="ArgumentOutOfRangeException">start, length, or start + length is not in the range of array.</exception>
     public Memory<T> AsMemory(int start, int length) => Value.AsMemory(start, length);
+
     /// <summary>
     /// Creates a new memory region over the portion of the target array starting at   a specified position to the end of the array.
     /// </summary>
@@ -223,11 +254,13 @@ public class PooledArray<T> : IRAII<T[]>, IList, IStructuralComparable, IStructu
     /// <exception cref="ArrayTypeMismatchException">array is covariant, and the array's type is not exactly T[].</exception>
     /// <exception cref="ArgumentOutOfRangeException">start, length, or start + length is not in the range of array.</exception>
     public Memory<T> AsMemory(int start) => Value.AsMemory(start);
+
     /// <summary>
     ///  Creates a new memory region over the target array.
     /// </summary>
     /// <returns>The memory representation of the whole or part of the array.</returns>
     public Memory<T> AsMemory() => Value.AsMemory();
+
     /// <summary>
     /// Creates a new memory region over the portion of the target array starting at a specified index to the end of the array.
     /// </summary>
@@ -250,9 +283,16 @@ public class PooledArray<T> : IRAII<T[]>, IList, IStructuralComparable, IStructu
     void IList.Insert(int index, object value) => ((IList)Value).Insert(index, value);
     void IList.Remove(object value) => ((IList)Value).Remove(value);
     void IList.RemoveAt(int index) => ((IList)Value).RemoveAt(index);
-    int IStructuralComparable.CompareTo(object other, IComparer comparer) => ((IStructuralComparable)Value).CompareTo(other, comparer);
-    bool IStructuralEquatable.Equals(object other, IEqualityComparer comparer) => ((IStructuralEquatable)Value).Equals(other, comparer);
-    int IStructuralEquatable.GetHashCode(IEqualityComparer comparer) => ((IStructuralEquatable)Value).GetHashCode(comparer);
+
+    int IStructuralComparable.CompareTo(object other, IComparer comparer) =>
+        ((IStructuralComparable)Value).CompareTo(other, comparer);
+
+    bool IStructuralEquatable.Equals(object other, IEqualityComparer comparer) =>
+        ((IStructuralEquatable)Value).Equals(other, comparer);
+
+    int IStructuralEquatable.GetHashCode(IEqualityComparer comparer) =>
+        ((IStructuralEquatable)Value).GetHashCode(comparer);
+
     void ICollection<T>.Add(T item) => ((ICollection<T>)Value).Add(item);
     void ICollection<T>.Clear() => ((ICollection<T>)Value).Clear();
     bool ICollection<T>.Contains(T item) => ((ICollection<T>)Value).Contains(item);
@@ -262,19 +302,30 @@ public class PooledArray<T> : IRAII<T[]>, IList, IStructuralComparable, IStructu
     int IList<T>.IndexOf(T item) => ((IList<T>)Value).IndexOf(item);
     void IList<T>.Insert(int index, T item) => ((IList<T>)Value).Insert(index, item);
     void IList<T>.RemoveAt(int index) => ((IList<T>)Value).RemoveAt(index);
+
     /// <summary>Equals</summary>
     public override bool Equals(object? obj) => Equals(obj as PooledArray<T>);
+
     /// <summary>Equals</summary>
-    public bool Equals(PooledArray<T>? other) => other is not null && EqualityComparer<T[]>.Default.Equals(Value, other.Value);
+    public bool Equals(PooledArray<T>? other) =>
+        other is not null && EqualityComparer<T[]>.Default.Equals(Value, other.Value);
+
     /// <summary>GetHashCode</summary>
     public override int GetHashCode() => HashCode.Combine(Value);
 
-    object IList.this[int index] { get => ((IList)Value)[index]; set => ((IList)Value)[index] = value; }
-    T IList<T>.this[int index] { get => Value[index]; set => Value[index] = value; }
+    object IList.this[int index]
+    {
+        get => ((IList)Value)[index]!;
+        set => ((IList)Value)[index] = value;
+    }
+    T IList<T>.this[int index]
+    {
+        get => Value[index];
+        set => Value[index] = value;
+    }
     T IReadOnlyList<T>.this[int index] => Value[index];
 
     #endregion
-
 }
 
 public static partial class Sugar
@@ -286,7 +337,9 @@ public static partial class Sugar
     /// <param name="pool">The ArrayPool</param>
     /// <param name="minimumLength">The minimum length of the array</param>
     /// <returns></returns>
-    public static PooledArray<T> Alloc<T>(this ArrayPool<T> pool, int minimumLength) => new(pool, false, pool.Rent(minimumLength));
+    public static PooledArray<T> Alloc<T>(this ArrayPool<T> pool, int minimumLength) =>
+        new(pool, false, pool.Rent(minimumLength));
+
     /// <summary>
     /// Rent a array by RAII
     /// </summary>
@@ -295,7 +348,16 @@ public static partial class Sugar
     /// <param name="minimumLength">The minimum length of the array</param>
     /// <param name="clearArray">Indicates whether the contents of the buffer should be cleared before reuse</param>
     /// <returns></returns>
-    public static PooledArray<T> Alloc<T>(this ArrayPool<T> pool, int minimumLength, bool clearArray) => new(pool, clearArray, pool.Rent(minimumLength));
+    public static PooledArray<T> Alloc<T>(this ArrayPool<T> pool, int minimumLength, bool clearArray) =>
+        new(pool, clearArray, pool.Rent(minimumLength));
+
+    /// <summary>
+    /// Creates a deep(1) copy of the System.Array.
+    /// </summary>
+    /// <returns>A deep(1) copy of the System.Array.</returns>
+    public static T[] Cloned<T>(this PooledArray<T> array) where T : IClone<T> => array.Value.Cloned();
 }
 
 #endregion
+
+#pragma warning restore CS8769

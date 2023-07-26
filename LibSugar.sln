@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibSugar", "LibSugar\LibSug
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{DCD4FF19-5C38-42B4-BF1B-605B6E47CC31}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibSugar.CodeGen", "LibSugar.CodeGen\LibSugar.CodeGen.csproj", "{C53AEA48-A9EE-4A2E-B294-B5B681A9D616}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +28,12 @@ Global
 		{DCD4FF19-5C38-42B4-BF1B-605B6E47CC31}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DCD4FF19-5C38-42B4-BF1B-605B6E47CC31}.Unity|Any CPU.ActiveCfg = Debug|Any CPU
 		{DCD4FF19-5C38-42B4-BF1B-605B6E47CC31}.Unity|Any CPU.Build.0 = Debug|Any CPU
+		{C53AEA48-A9EE-4A2E-B294-B5B681A9D616}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C53AEA48-A9EE-4A2E-B294-B5B681A9D616}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C53AEA48-A9EE-4A2E-B294-B5B681A9D616}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C53AEA48-A9EE-4A2E-B294-B5B681A9D616}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C53AEA48-A9EE-4A2E-B294-B5B681A9D616}.Unity|Any CPU.ActiveCfg = Debug|Any CPU
+		{C53AEA48-A9EE-4A2E-B294-B5B681A9D616}.Unity|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

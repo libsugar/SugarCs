@@ -12,6 +12,7 @@ public readonly record struct Unit
 #endif
 {
     public static readonly Unit Instance = default;
+    public static Unit New => default;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override string ToString() => "Unit";

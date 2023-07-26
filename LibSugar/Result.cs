@@ -24,7 +24,7 @@ public struct Result<T, E> : IEquatable<Result<T, E>>
 
     public Result<U, E> MapOk<U>(Func<T, U> f) => IsOk ? new() { res = f(res) } : new() { err = err };
 
-    public Result<T, U> MapErr<U>(Func<T, U> f) => IsErr ? new() { err = new(f(res)) } : new() { res = res };
+    public Result<T, U> MapErr<U>(Func<E, U> f) => IsErr ? new() { err = new(f(err)) } : new() { res = res };
 
     public Result<U, E> And<U>(Result<U, E> o) => IsErr ? new() { err = err } : o;
     public Result<U, E> And<U>(Func<Result<U, E>> o) => IsErr ? new() { err = err } : o();
@@ -32,7 +32,7 @@ public struct Result<T, E> : IEquatable<Result<T, E>>
     public Result<T, E> Or(Result<T, E> o) => IsErr ? o : this;
     public Result<T, E> Or(Func<Result<T, E>> o) => IsErr ? o() : this;
 
-    public override bool Equals(object obj) => obj is Result<T, E> result && Equals(result);
+    public override bool Equals(object? obj) => obj is Result<T, E> result && Equals(result);
 
     public bool Equals(Result<T, E> other) => err == null && other.err == null ? EqualityComparer<T>.Default.Equals(res, other.res) : err != null && other.err != null ? EqualityComparer<Box<E>>.Default.Equals(err, other.err) : false;
 
@@ -45,8 +45,8 @@ public struct Result<T, E> : IEquatable<Result<T, E>>
     public static Result<T, E> operator |(Result<T, E> left, Result<T, E> right) => left.Or(right);
     public static Result<T, E> operator &(Result<T, E> left, Result<T, E> right) => left.And(right);
 #if NET7_0_OR_GREATER
-    static Result<T, E> IBitwiseOperators<Result<T, E>, Result<T, E>, Result<T, E>>.operator ^(Result<T, E> left, Result<T, E> right) => throw new NotImplementedException();
-    static Result<T, E> IBitwiseOperators<Result<T, E>, Result<T, E>, Result<T, E>>.operator ~(Result<T, E> _) => throw new NotImplementedException();
+    static Result<T, E> IBitwiseOperators<Result<T, E>, Result<T, E>, Result<T, E>>.operator ^(Result<T, E> left, Result<T, E> right) => throw new NotSupportedException();
+    static Result<T, E> IBitwiseOperators<Result<T, E>, Result<T, E>, Result<T, E>>.operator ~(Result<T, E> _) => throw new NotSupportedException();
 #endif
 }
 

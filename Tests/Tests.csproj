@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <TargetFrameworks>net5.0;net6.0;net7.0</TargetFrameworks>
-    <LangVersion>10.0</LangVersion>
+	<!--<TargetFrameworks>net7.0</TargetFrameworks>-->
+    <LangVersion>11.0</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
@@ -19,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LibSugar\LibSugar.csproj" />
+    <ProjectReference Include="..\LibSugar.CodeGen\LibSugar.CodeGen.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>

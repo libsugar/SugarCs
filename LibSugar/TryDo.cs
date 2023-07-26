@@ -17,7 +17,7 @@ namespace LibSugar;
 
 public static partial class Sugar
 {
-    public static void AddOrUpdate<K, V>(this ConcurrentDictionary<K, V> self, K key, V val) =>
+    public static void AddOrUpdate<K, V>(this ConcurrentDictionary<K, V> self, K key, V val) where K : notnull =>
         self.AddOrUpdate(key, val, (_, _) => val);
 
     public static V? TryGet<K, V>(this ConditionalWeakTable<K, V> self, K key) where K : class where V : class =>
@@ -37,16 +37,16 @@ public static partial class SugarClass
     public static V? TryGet<K, V>(this IReadOnlyDictionary<K, V> self, K key) where V : class =>
         self.TryGetValue(key, out var val) ? val : null;
 
-    public static V? TryGet<K, V>(this Dictionary<K, V> self, K key) where V : class =>
+    public static V? TryGet<K, V>(this Dictionary<K, V> self, K key) where V : class where K : notnull =>
         self.TryGetValue(key, out var val) ? val : null;
 
     public static T? TryGet<T>(this HashSet<T> self, T key) where T : class =>
         self.TryGetValue(key, out var val) ? val : null;
 
-    public static V? TryGet<K, V>(this ConcurrentDictionary<K, V> self, K key) where V : class =>
+    public static V? TryGet<K, V>(this ConcurrentDictionary<K, V> self, K key) where V : class where K : notnull =>
         self.TryGetValue(key, out var val) ? val : null;
 
-    public static V? TryRemove<K, V>(this ConcurrentDictionary<K, V> self, K key) where V : class =>
+    public static V? TryRemove<K, V>(this ConcurrentDictionary<K, V> self, K key) where V : class where K : notnull =>
         self.TryRemove(key, out var val) ? val : null;
 
     public static T? TryPeek<T>(this ConcurrentBag<T> self) where T : class =>
@@ -79,10 +79,10 @@ public static partial class SugarClass
     public static T? TryPop<T>(this ConcurrentStack<T> self) where T : class =>
         self.TryPop(out var val) ? val : null;
 
-    public static V? TryGet<K, V>(this SortedList<K, V> self, K key) where V : class =>
+    public static V? TryGet<K, V>(this SortedList<K, V> self, K key) where V : class where K : notnull =>
         self.TryGetValue(key, out var val) ? val : null;
 
-    public static V? TryGet<K, V>(this SortedDictionary<K, V> self, K key) where V : class =>
+    public static V? TryGet<K, V>(this SortedDictionary<K, V> self, K key) where V : class where K : notnull =>
         self.TryGetValue(key, out var val) ? val : null;
 
 #if !NETSTANDARD
@@ -92,13 +92,13 @@ public static partial class SugarClass
     public static T? TryGet<T>(this IImmutableSet<T> self, T key) where T : class =>
         self.TryGetValue(key, out var val) ? val : null;
 
-    public static V? TryGet<K, V>(this ImmutableDictionary<K, V> self, K key) where V : class =>
+    public static V? TryGet<K, V>(this ImmutableDictionary<K, V> self, K key) where V : class where K : notnull =>
         self.TryGetValue(key, out var val) ? val : null;
 
     public static T? TryGet<T>(this ImmutableHashSet<T> self, T key) where T : class =>
         self.TryGetValue(key, out var val) ? val : null;
 
-    public static V? TryGet<K, V>(this ImmutableSortedDictionary<K, V> self, K key) where V : class =>
+    public static V? TryGet<K, V>(this ImmutableSortedDictionary<K, V> self, K key) where V : class where K : notnull =>
         self.TryGetValue(key, out var val) ? val : null;
 
     public static T? TryGet<T>(this ImmutableSortedSet<T> self, T key) where T : class =>
@@ -112,10 +112,10 @@ public static partial class SugarClass
     public static T? TryGet<T>(this JsonValue self) where T : class =>
         self.TryGetValue<T>(out var val) ? val : null;
 
-    public static E? TryPeek<E, P>(this PriorityQueue<E, P> self, out P priority) where E : class =>
+    public static E? TryPeek<E, P>(this PriorityQueue<E, P> self, out P? priority) where E : class =>
         self.TryPeek(out var val, out priority) ? val : null;
 
-    public static E? TryDequeue<E, P>(this PriorityQueue<E, P> self, out P priority) where E : class =>
+    public static E? TryDequeue<E, P>(this PriorityQueue<E, P> self, out P? priority) where E : class =>
         self.TryDequeue(out var val, out priority) ? val : null;
 #endif
 
@@ -137,10 +137,10 @@ public static partial class SugarClass
         return null;
     }
 
-    public static V? TryGet<K, V>(this KeyedCollection<K, V> self, K key) where V : class =>
+    public static V? TryGet<K, V>(this KeyedCollection<K, V> self, K key) where V : class where K : notnull =>
         self.TryGetValue(key, out var val) ? val : null;
 
-    public static V? TryGet<K, V>(this ReadOnlyDictionary<K, V> self, K key) where V : class =>
+    public static V? TryGet<K, V>(this ReadOnlyDictionary<K, V> self, K key) where V : class where K : notnull =>
         self.TryGetValue(key, out var val) ? val : null;
 }
 
@@ -152,16 +152,16 @@ public static partial class SugarStruct
     public static V? TryGet<K, V>(this IReadOnlyDictionary<K, V> self, K key) where V : struct =>
         self.TryGetValue(key, out var val) ? val : null;
 
-    public static V? TryGet<K, V>(this Dictionary<K, V> self, K key) where V : struct =>
+    public static V? TryGet<K, V>(this Dictionary<K, V> self, K key) where V : struct where K : notnull =>
         self.TryGetValue(key, out var val) ? val : null;
 
     public static T? TryGet<T>(this HashSet<T> self, T key) where T : struct =>
         self.TryGetValue(key, out var val) ? val : null;
 
-    public static V? TryGet<K, V>(this ConcurrentDictionary<K, V> self, K key) where V : struct =>
+    public static V? TryGet<K, V>(this ConcurrentDictionary<K, V> self, K key) where V : struct where K : notnull =>
         self.TryGetValue(key, out var val) ? val : null;
 
-    public static V? TryRemove<K, V>(this ConcurrentDictionary<K, V> self, K key) where V : struct =>
+    public static V? TryRemove<K, V>(this ConcurrentDictionary<K, V> self, K key) where V : struct where K : notnull =>
         self.TryRemove(key, out var val) ? val : null;
 
     public static T? TryPeek<T>(this ConcurrentBag<T> self) where T : struct =>
@@ -194,10 +194,10 @@ public static partial class SugarStruct
     public static T? TryPop<T>(this ConcurrentStack<T> self) where T : struct =>
         self.TryPop(out var val) ? val : null;
 
-    public static V? TryGet<K, V>(this SortedList<K, V> self, K key) where V : struct =>
+    public static V? TryGet<K, V>(this SortedList<K, V> self, K key) where V : struct where K : notnull =>
         self.TryGetValue(key, out var val) ? val : null;
 
-    public static V? TryGet<K, V>(this SortedDictionary<K, V> self, K key) where V : struct =>
+    public static V? TryGet<K, V>(this SortedDictionary<K, V> self, K key) where V : struct where K : notnull =>
         self.TryGetValue(key, out var val) ? val : null;
 
 #if !NETSTANDARD
@@ -207,13 +207,13 @@ public static partial class SugarStruct
     public static T? TryGet<T>(this IImmutableSet<T> self, T key) where T : struct =>
         self.TryGetValue(key, out var val) ? val : null;
 
-    public static V? TryGet<K, V>(this ImmutableDictionary<K, V> self, K key) where V : struct =>
+    public static V? TryGet<K, V>(this ImmutableDictionary<K, V> self, K key) where V : struct where K : notnull =>
         self.TryGetValue(key, out var val) ? val : null;
 
     public static T? TryGet<T>(this ImmutableHashSet<T> self, T key) where T : struct =>
         self.TryGetValue(key, out var val) ? val : null;
 
-    public static V? TryGet<K, V>(this ImmutableSortedDictionary<K, V> self, K key) where V : struct =>
+    public static V? TryGet<K, V>(this ImmutableSortedDictionary<K, V> self, K key) where V : struct where K : notnull =>
         self.TryGetValue(key, out var val) ? val : null;
 
     public static T? TryGet<T>(this ImmutableSortedSet<T> self, T key) where T : struct =>
@@ -227,10 +227,10 @@ public static partial class SugarStruct
     public static T? TryGet<T>(this JsonValue self) where T : struct =>
         self.TryGetValue<T>(out var val) ? val : null;
 
-    public static E? TryPeek<E, P>(this PriorityQueue<E, P> self, out P priority) where E : struct =>
+    public static E? TryPeek<E, P>(this PriorityQueue<E, P> self, out P? priority) where E : struct =>
         self.TryPeek(out var val, out priority) ? val : null;
 
-    public static E? TryDequeue<E, P>(this PriorityQueue<E, P> self, out P priority) where E : struct =>
+    public static E? TryDequeue<E, P>(this PriorityQueue<E, P> self, out P? priority) where E : struct =>
         self.TryDequeue(out var val, out priority) ? val : null;
 #endif
 
@@ -252,9 +252,9 @@ public static partial class SugarStruct
         return null;
     }
 
-    public static V? TryGet<K, V>(this KeyedCollection<K, V> self, K key) where V : struct =>
+    public static V? TryGet<K, V>(this KeyedCollection<K, V> self, K key) where V : struct where K : notnull =>
         self.TryGetValue(key, out var val) ? val : null;
 
-    public static V? TryGet<K, V>(this ReadOnlyDictionary<K, V> self, K key) where V : struct =>
+    public static V? TryGet<K, V>(this ReadOnlyDictionary<K, V> self, K key) where V : struct where K : notnull =>
         self.TryGetValue(key, out var val) ? val : null;
 }
