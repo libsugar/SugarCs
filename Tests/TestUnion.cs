@@ -8,7 +8,7 @@ public partial class TestUnion
     [SetUp]
     public void Setup() { }
 
-    [Union, For("TA, TB, TC")]
+    [Union, For("TA", "TB", "TC")]
     public enum Union1Kind
     {
         A,
@@ -27,7 +27,6 @@ public partial class TestUnion
         [Of("TC")]
         H,
     }
-
 
     public readonly partial struct Union1<TA, TB, TC> where TB : unmanaged where TC : class
     {

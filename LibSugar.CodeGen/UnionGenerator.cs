@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
 using System.Text;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
@@ -37,18 +33,20 @@ public class UnionGenerator : ISourceGenerator
     {
         var receiver = (UnionReceiver)context.SyntaxReceiver!;
 
-        var enums = CollectDeclSymbol(receiver.Enums, context);
+        var enums = context.CollectDeclSymbol(receiver.Enums);
 
-        foreach (var enum_kv in enums)
+        enums.AsParallel().ForAll(enum_kv =>
         {
             var enum_full_name = enum_kv.Key;
-            var (enum_decl, _, enum_symbol) = enum_kv.Value;
+            var (enum_decl, _, enum_symbol, _) = enum_kv.Value;
             var enum_name = enum_symbol.Name;
 
             var name = enum_decl.Identifier.Text;
             var attr_union = enum_symbol.GetAttributes().AsParallel().AsOrdered()
                 .QueryAttr("LibSugar.UnionAttribute")
                 .FirstOrDefault();
+            // not LibSugar's union attr
+            if (attr_union == null) return;
 
             if (attr_union is { ConstructorArguments.Length: > 0 })
             {
@@ -382,33 +380,8 @@ public class UnionGenerator : ISourceGenerator
 }}
 ";
             }
-        }
-
-    }
-
-    static Dictionary<string, (T, AttributeSyntax, INamedTypeSymbol)> CollectDeclSymbol<T>(List<(T, AttributeSyntax)> items, GeneratorExecutionContext context) where T : BaseTypeDeclarationSyntax
-    {
-        return items
-            .AsParallel()
-            .Select(sa =>
-            {
-                var (@enum, enum_attr) = sa;
-                var name = Utils.GetFullName(@enum);
-                var symbol = context.Compilation.GetSymbolsWithName(@enum.Identifier.Text, SymbolFilter.Type)
-                    .AsParallel()
-                    .Select(static a => (a, name: a.ToDisplayString()))
-                    .Where(a => a.name == name)
-                    .Select(static a => (INamedTypeSymbol)a.a)
-                    .FirstOrDefault();
-                if (symbol != null) return new { name, @enum, enum_attr, symbol };
-                else
-                {
-                    context.LogError($"Cannot find symbol {name}, please submit an issues", @enum.Identifier.GetLocation());
-                    return null;
-                }
-            })
-            .Where(static a => a != null)
-            .ToDictionary(static a => a!.name, static a => (a!.@enum, a.enum_attr, a.symbol));
+            
+        });
     }
 
     class UnionReceiver : ISyntaxReceiver

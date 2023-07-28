@@ -12,7 +12,7 @@ public class UnionAttribute : Attribute
     /// EnumName    :   FooKind
     /// </code>
     /// </summary>
-    public string? Name { get; set; }
+    public string? Name { get; }
 
     public UnionAttribute() { }
 

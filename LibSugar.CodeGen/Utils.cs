@@ -4,6 +4,9 @@ using Microsoft.CodeAnalysis;
 using System.Collections.Generic;
 using System.Linq;
 using System.Collections;
+using Microsoft.CodeAnalysis.CSharp;
+using System.Xml.Linq;
+using System.Collections.Immutable;
 
 namespace LibSugar.CodeGen;
 
@@ -133,6 +136,15 @@ internal static class Utils
     public static ParallelQuery<TypedConstant> FlatAll(this ParallelQuery<TypedConstant> iter)
         => iter.SelectMany(a => a.Kind is TypedConstantKind.Array ? FlatAll(a.Values.AsParallel().AsOrdered()) : ParallelEnumerable.Repeat(a, 1));
 
+    public static string GetAccessStr(this Accessibility self) => self switch
+    {
+        Accessibility.Public => "public",
+        Accessibility.Protected => "protected",
+        Accessibility.Internal => "internal",
+        Accessibility.Private => "private",
+        _ => "",
+    };
+
     public static string WrapNameSpace(this INamedTypeSymbol symbol, string code)
     {
         var ns = symbol.ContainingNamespace;
@@ -149,14 +161,7 @@ namespace {ns}
     {
         var parent = symbol.ContainingType;
         if (parent == null) return code;
-        var access = parent.DeclaredAccessibility switch
-        {
-            Accessibility.Public => "public",
-            Accessibility.Protected => "protected",
-            Accessibility.Internal => "internal",
-            Accessibility.Private => "private",
-            _ => "",
-        };
+        var access = parent.DeclaredAccessibility.GetAccessStr();
         var type_decl = parent switch
         {
             { IsValueType: true, IsRecord: true, IsReadOnly: false } => "partial record struct",
@@ -202,6 +207,13 @@ namespace {ns}
         return parent.ToDisplayString();
     }
 
+    public static string GetParentNameWithDot(this INamedTypeSymbol symbol)
+    {
+        var parent = symbol.GetParentName();
+        if (string.IsNullOrWhiteSpace(parent)) return string.Empty;
+        return $"{parent}.";
+    }
+
     public static string ReplaceName(this INamedTypeSymbol symbol, string name)
     {
         var parent = symbol.GetParentName();
@@ -225,9 +237,92 @@ namespace {ns}
         }
     }
 
+    public static ParallelQuery<R> WhereCast<T, R>(this ParallelQuery<T> iter)
+        => iter.Where(a => a is R).Cast<R>();
+
     public static IEnumerable<(T a, int i)> Indexed<T>(this IEnumerable<T> iter) => iter.Select((a, b) => (a, b));
 
     public static ParallelQuery<(T a, int i)> Indexed<T>(this ParallelQuery<T> iter) => iter.Select((a, b) => (a, b));
+
+    public static Dictionary<string, (T decl, AttributeSyntax attr, INamedTypeSymbol symbol, SemanticModel semantic)> CollectDeclSymbol<T>(this GeneratorExecutionContext context, List<(T, AttributeSyntax)> items) where T : BaseTypeDeclarationSyntax
+    {
+        return items
+            .AsParallel()
+            .Select(sa =>
+            {
+                var (decl, attr) = sa;
+                var semantic = context.Compilation.GetSemanticModel(decl.SyntaxTree);
+                var name = GetFullName(decl);
+                var symbol = semantic.GetDeclaredSymbol(decl);
+                if (symbol != null) return new { name, decl, attr, symbol, semantic };
+                else
+                {
+                    context.LogError($"Cannot find symbol {name}", decl.Identifier.GetLocation());
+                    return null;
+                }
+            })
+            .Where(static a => a != null)
+            .ToDictionary(static a => a!.name, static a => (a!.decl, a.attr, a.symbol, a.semantic));
+    }
+
+    public static string GetRefStr(this RefKind kind) => kind switch
+    {
+        RefKind.Ref => "ref ",
+        RefKind.Out => "out ",
+        RefKind.In => "in ",
+        _ => string.Empty,
+    };
+
+    public static IEnumerable<string> ParamToArg(this IEnumerable<IParameterSymbol> iter) => iter.Select(p => $"{p.RefKind.GetRefStr()}{p.Name}");
+    public static IEnumerable<string> ParamToDoArg(this IEnumerable<IParameterSymbol> iter) => iter.Select(p => $"{p.RefKind.GetRefStr()}{p.Type}");
+    public static IEnumerable<string> GetConstraint(this IEnumerable<ITypeParameterSymbol> iter) => iter.Select(p =>
+    {
+        var cst = new List<string>();
+        foreach (var type in p.ConstraintTypes)
+        {
+            cst.Add(type.ToDisplayString());
+        }
+        if (p.HasReferenceTypeConstraint) cst.Add("class");
+        if (p.HasValueTypeConstraint) cst.Add("struct");
+        if (p.HasUnmanagedTypeConstraint) cst.Add("unmanaged");
+        if (p.HasNotNullConstraint) cst.Add("notnull");
+        if (p.HasConstructorConstraint) cst.Add("new()");
+        if (cst.Count == 0) return string.Empty;
+        return $"where {p} : {string.Join(", ", cst)}";
+    });
+
+    public static string GetTypeOf(this INamedTypeSymbol t)
+    {
+        var parent_name = t.GetParentNameWithDot();
+        var generics = string.Join(",", t.TypeParameters.Select(_ => string.Empty));
+        if (!t.TypeParameters.IsEmpty) generics = $"<{generics}>";
+        return $"{parent_name}{t.Name}{generics}";
+    }
+
+    public static bool ParamEq(this ImmutableArray<IParameterSymbol> self, ImmutableArray<IParameterSymbol> other)
+    {
+        if (self.Length != other.Length) return false;
+        return self.Zip(other, (a, b) =>
+        {
+            if (a.Type.TypeKind != b.Type.TypeKind) return false;
+            if (a.Type.TypeKind is TypeKind.TypeParameter) return true;
+            return a.Type.Equals(b.Type, SymbolEqualityComparer.Default);
+        }).All(a => a);
+    }
+
+    public static bool MethodEq(this IMethodSymbol self, IMethodSymbol other)
+    {
+        if (self.IsGenericMethod == other.IsGenericMethod && self.IsGenericMethod)
+        {
+            if (self.TypeParameters.Length != other.TypeParameters.Length) return false;
+        }
+        return ParamEq(self.Parameters, other.Parameters);
+    }
+
+    public static bool IndexerEq(this IPropertySymbol self, IPropertySymbol other)
+    {
+        return ParamEq(self.Parameters, other.Parameters);
+    }
 
     public static void LogDebug(this GeneratorExecutionContext context, string msg, Location loc)
     {
