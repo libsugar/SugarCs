@@ -184,8 +184,10 @@ public class UnionGenerator : ISourceGenerator
 
                     if (member_type_str != null)
                     {
-                        union_get[i] = $"public virtual {member_type_str} Get{member_name} => default!;";
-                        union_try_get[i] = $"public virtual {member_type_str}? TryGet{member_name} => default;";
+                        union_get[i] = $@"/// <inheritdoc cref=""{enum_symbol}.{member.Name}""/>
+    public virtual {member_type_str} Get{member_name} => default!;";
+                        union_try_get[i] = $@"/// <inheritdoc cref=""{enum_symbol}.{member.Name}""/>
+    public virtual {member_type_str}? TryGet{member_name} => default;";
                     }
 
                     var member_type_value = member_type_str == null ? string.Empty : $@"
@@ -206,6 +208,7 @@ public class UnionGenerator : ISourceGenerator
                     var to_str = member_type_str == null ? string.Empty : $" {{{{ {{Value}} }}}}";
 
                     union_tag_class[i] = $@"
+    /// <inheritdoc cref=""{enum_symbol}.{member.Name}""/>
     public partial class {member_name} : {type_name}, IEquatable<{member_name}>{i_box}
     {{
         public {member_name}({ctor_arg}) {{{ctor_body}}}
@@ -227,6 +230,7 @@ public class UnionGenerator : ISourceGenerator
                 });
 
                 return $@"
+/// <inheritdoc cref=""{enum_symbol}""/>
 [Union]
 {modifiers} abstract partial class {type_name} : 
     IEquatable<{type_name}>
@@ -295,29 +299,38 @@ public class UnionGenerator : ISourceGenerator
 
                         if (isUnmanaged)
                         {
-                            union_get[i] = $"public readonly {member_type_str} {member_name} => _union._{member_name};";
-                            union_make[i] = $"public static {type_name} Make{member_name}({member_type_str} v) => new() {{ Kind = {enum_name}.{member.Name}, _union = new() {{ _{member_name} = v }} }};";
-                            union_fields[i] = $"[FieldOffset(0)]\n        public {member_type_str} _{member_name};";
+                            union_get[i] = $@"/// <inheritdoc cref=""{enum_symbol}.{member.Name}""/>
+    public readonly {member_type_str} {member_name} => _union._{member_name};";
+                            union_make[i] = $@"/// <inheritdoc cref=""{enum_symbol}.{member.Name}""/>
+    public static {type_name} Make{member_name}({member_type_str} v) => new() {{ Kind = {enum_name}.{member.Name}, _union = new() {{ _{member_name} = v }} }};";
+                            union_fields[i] = $@"[FieldOffset(0)]
+        public {member_type_str} _{member_name};";
                         }
                         else if (isRefType)
                         {
-                            union_get[i] = $"public readonly {member_type_str} {member_name} => ({member_type_str})_ref_type;";
-                            union_make[i] = $"public static {type_name} Make{member_name}({member_type_str} v) => new() {{ Kind = {enum_name}.{member.Name}, _ref_type = v }};";
+                            union_get[i] = $@"/// <inheritdoc cref=""{enum_symbol}.{member.Name}""/>
+    public readonly {member_type_str} {member_name} => ({member_type_str})_ref_type;";
+                            union_make[i] = $@"/// <inheritdoc cref=""{enum_symbol}.{member.Name}""/>
+    public static {type_name} Make{member_name}({member_type_str} v) => new() {{ Kind = {enum_name}.{member.Name}, _ref_type = v }};";
                         }
                         else
                         {
-                            union_get[i] = $"public readonly {member_type_str} {member_name} {{ get; init; }}";
-                            union_make[i] = $"public static {type_name} Make{member_name}({member_type_str} v) => new() {{ Kind = {enum_name}.{member.Name}, {member_name} = v }};";
+                            union_get[i] = $@"/// <inheritdoc cref=""{enum_symbol}.{member.Name}""/>
+    public readonly {member_type_str} {member_name} {{ get; init; }}";
+                            union_make[i] = $@"/// <inheritdoc cref=""{enum_symbol}.{member.Name}""/>
+    public static {type_name} Make{member_name}({member_type_str} v) => new() {{ Kind = {enum_name}.{member.Name}, {member_name} = v }};";
                         }
 
-                        union_try_get[i] = $"public readonly {member_type_str}? TryGet{member_name} => Is{member_name} ? {member_name} : default;";
+                        union_try_get[i] = $@"/// <inheritdoc cref=""{enum_symbol}.{member.Name}""/>
+    public readonly {member_type_str}? TryGet{member_name} => Is{member_name} ? {member_name} : default;";
                         eqs[i] = $"{enum_name}.{member.Name} => EqualityComparer<{member_type_str}>.Default.Equals({member_name}, other.{member_name}),";
                         hashs[i] = $"{enum_name}.{member.Name} => HashCode.Combine(Kind, {member_name}),";
                         to_strs[i] = $@"{enum_name}.{member.Name} => $""{name}.{member_name} {{{{ {{{member_name}}} }}}}"",";
                     }
                     else
                     {
-                        union_make[i] = $"public static {type_name} Make{member_name}() => new() {{ Kind = {enum_name}.{member.Name} }};";
+                        union_make[i] = $@"/// <inheritdoc cref=""{enum_symbol}.{member.Name}""/>
+    public static {type_name} Make{member_name}() => new() {{ Kind = {enum_name}.{member.Name} }};";
                         to_strs[i] = $@"{enum_name}.{member.Name} => $""{name}.{member_name}"",";
                     }
                 });
@@ -336,6 +349,7 @@ public class UnionGenerator : ISourceGenerator
 ";
 
                 return $@"
+/// <inheritdoc cref=""{enum_symbol}""/>
 [Union]
 {modifiers} readonly partial struct {type_name} : 
     IEquatable<{type_name}>

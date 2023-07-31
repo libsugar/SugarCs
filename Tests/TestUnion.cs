@@ -8,10 +8,12 @@ public partial class TestUnion
     [SetUp]
     public void Setup() { }
 
+    /// <summary>TestDoc</summary>
     [Union, For("TA", "TB", "TC")]
     public enum Union1Kind
     {
         A,
+        /// <summary>TestDoc</summary>
         [Name("Some"), Of<int>]
         B,
         [Of<Task>]
@@ -75,6 +77,16 @@ public partial class TestUnion
         [Of<int>]
         B,
         [Of(typeof(double))]
+        C,
+    }
+
+    [Union, Class]
+    public enum Union6Kind
+    {
+        A,
+        [Of<int>]
+        B,
+        [Of<float>]
         C,
     }
 }
