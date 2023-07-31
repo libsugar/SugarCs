@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.Text;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 
@@ -38,9 +39,6 @@ public class DerefGenerator : ISourceGenerator
         defs.AsParallel().ForAll(def =>
         {
             var (syn, syn_attr, sym, semantic) = def.Value;
-
-            var type_name = $"{syn.Identifier}Deref";
-            var access = sym.DeclaredAccessibility.GetAccessStr();
 
             var attr_deref = sym.GetAttributes().AsParallel().AsOrdered()
                 .QueryAttr("LibSugar.DerefAttribute")
@@ -89,7 +87,21 @@ public class DerefGenerator : ISourceGenerator
                 .Select(a => a.Value as INamedTypeSymbol)
                 .FirstOrDefault();
 
-            var useExtension = false; // todo
+            var use_extension = attr_deref.NamedArguments
+                .Where(a => a.Key == "UseExtension")
+                .Select(a => a.Value)
+                .Where(a => a.Kind is TypedConstantKind.Primitive)
+                .Select(a => a.Value is true)
+                .FirstOrDefault();
+
+            var extension_name = attr_deref.NamedArguments
+                .Where(a => a.Key == "ExtensionName")
+                .Select(a => a.Value)
+                .Where(a => a.Kind is TypedConstantKind.Primitive)
+                .Select(a => a.Value is string s ? s : null)
+                .FirstOrDefault() ?? $"{syn.Identifier}Deref";
+
+            var extension_access = sym.DeclaredAccessibility.GetAccessStr();
 
             var usings = new HashSet<string> { "using System.Runtime.CompilerServices;", "using LibSugar;" };
             Utils.GetUsings(syn, usings);
@@ -130,7 +142,7 @@ public class DerefGenerator : ISourceGenerator
                     .WhereCast<IMethodSymbol>()
                     .ToArray();
 
-                var gened = useExtension ? GenExtension() : GenInner();
+                var gened = use_extension ? GenExtension() : GenInner();
 
                 results.Add(gened);
 
@@ -297,7 +309,7 @@ public class DerefGenerator : ISourceGenerator
                         var constraint = string.Join(" ", m.TypeParameters.GetConstraint());
                         if (!string.IsNullOrWhiteSpace(constraint)) constraint = $" {constraint}";
 
-                        var doc_params = m.Parameters.IsEmpty ? string.Empty : $"({string.Join(", ", m.Parameters.ParamToDoArg())})";
+                        var doc_params = m.Parameters.IsEmpty ? string.Empty : $"({string.Join(", ", m.Parameters.ParamToDocArg())})";
                         var doc_cref = $"{deref_target_name}.{m.Name}{generic}{doc_params}".Replace("<", "{").Replace(">", "}");
 
                         method_table.GetOrAdd(m.Name, _ => new()).Add(m);
@@ -321,13 +333,67 @@ public class DerefGenerator : ISourceGenerator
 
                 string GenExtension()
                 {
-                    // todo
+
+                    var methods_gen = new string[methods.Length];
+                    methods.AsParallel().AsOrdered().Indexed().ForAll(mi =>
+                    {
+                        var (m, i) = mi;
+
+                        #region Distinct
+
+                        if (method_table.GetOrAdd(m.Name, _ => new())
+                            .AsParallel().Any(a => a.MethodEq(m))) return;
+
+                        #endregion
+
+                        var acc = m.DeclaredAccessibility.GetAccessStr();
+                        var ret_type = m.ReturnType.ToDisplayString();
+
+                        var can_acc = semantic.IsAccessible(syn.SpanStart, m);
+                        if (!can_acc) return;
+
+                        var is_ref = m.ReturnsByRef || m.ReturnsByRefReadonly;
+
+                        var ref_mod = m.ReturnsByRefReadonly ? "ref readonly " : m.ReturnsByRef ? "ref " : string.Empty;
+                        var ref_oper = is_ref ? "ref " : string.Empty;
+
+                        var method_generic_names =
+                            m.TypeParameters.AsParallel().Select(a => a.Name).ToImmutableHashSet();
+
+                        var has_generic = !(sym.TypeArguments.IsEmpty && m.TypeParameters.IsEmpty);
+                        var class_generic = sym.TypeParameters.AsParallel().AsOrdered()
+                            .Select(a => new ReplaceNameTypeParameterSymbol(method_generic_names.GetUniqueName(a.Name), a)).ToArray();
+                        var method_generic = m.TypeParameters.AsParallel().AsOrdered()
+                            .Select(a => new ReplaceNameTypeParameterSymbol(a.Name, a)).ToArray();
+                        var merge_generic = class_generic.AsParallel().AsOrdered()
+                            .Concat(method_generic.AsParallel().AsOrdered()).ToArray();
+
+                        var c_generic = sym.TypeParameters.IsEmpty ? string.Empty : $"<{string.Join(", ", class_generic.Select(a => a.Name))}>";
+                        var m_generic = m.TypeParameters.IsEmpty ? string.Empty : $"<{string.Join(", ", method_generic.Select(a => a.Name))}>";
+                        var generic = has_generic ? $"<{string.Join(", ", merge_generic.Select(a => a.Name))}>" : string.Empty;
+
+                        var constraint = string.Join(" ", merge_generic.GetConstraint());
+                        if (!string.IsNullOrWhiteSpace(constraint)) constraint = $" {constraint}";
+
+                        var @params = $"{string.Join(", ", m.Parameters)}";
+                        if (!string.IsNullOrEmpty(@params)) @params = $", {@params}";
+
+                        var doc_params = m.Parameters.IsEmpty ? string.Empty : $"({string.Join(", ", m.Parameters.ParamToDocArg())})";
+                        var doc_m_generic = m.IsGenericMethod ? $"<{string.Join(", ", m.TypeParameters)}>" : string.Empty;
+                        var doc_cref = $"{deref_target_name}.{m.Name}{doc_m_generic}{doc_params}".Replace("<", "{").Replace(">", "}");
+
+                        method_table.GetOrAdd(m.Name, _ => new()).Add(m);
+                        methods_gen[i] = $@"    /// <inheritdoc cref=""{doc_cref}""/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining), CompilerGenerated, LibSugar.DerefFrom(typeof({deref_target_typeof}), ""{m.Name}"")]
+    {acc} static {ref_mod}{ret_type} {m.Name}{generic}(this {syn.Identifier}{c_generic} self{@params}){constraint} => {ref_oper}self.{deref_method_name}.{m.Name}{m_generic}({string.Join(", ", m.Parameters.ParamToArg())});
+";
+                    });
 
                     return $@"
 [LibSugar.DerefFrom(typeof({deref_target_typeof}))]
-{access} static partial class {type_name}
+{extension_access} static partial class {extension_name}
 {{
-    
+{string.Join("\n", methods_gen.AsParallel().AsOrdered().Where(a => a != null).ToArray())}
 }}
 ";
                 }

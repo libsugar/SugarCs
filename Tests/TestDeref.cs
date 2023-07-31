@@ -56,9 +56,10 @@ public class TestDerefFoo<X, Y> : TestDerefFooBase
     /// <inheritdoc cref="Foo{T}(in T)"/>
     public void Bar() { }
     public void Asd<T>(T a) { }
+    public void Qwe<T>(Task<T> a) { }
 }
 
-[Deref(InheritLevels = -1, EndBaseClass = typeof(TestDerefFooBase2))]
+[Deref(InheritLevels = -1, EndBaseClass = typeof(TestDerefFooBase2), UseExtension = true)]
 public partial class Deref1<T> : IDeref<TestDerefFoo<T, int>>
 {
     public Deref1(TestDerefFoo<T, int> inner)

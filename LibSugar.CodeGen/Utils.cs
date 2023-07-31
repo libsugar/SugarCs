@@ -7,6 +7,7 @@ using System.Collections;
 using Microsoft.CodeAnalysis.CSharp;
 using System.Xml.Linq;
 using System.Collections.Immutable;
+using System.Xml;
 
 namespace LibSugar.CodeGen;
 
@@ -274,7 +275,7 @@ namespace {ns}
     };
 
     public static IEnumerable<string> ParamToArg(this IEnumerable<IParameterSymbol> iter) => iter.Select(p => $"{p.RefKind.GetRefStr()}{p.Name}");
-    public static IEnumerable<string> ParamToDoArg(this IEnumerable<IParameterSymbol> iter) => iter.Select(p => $"{p.RefKind.GetRefStr()}{p.Type}");
+    public static IEnumerable<string> ParamToDocArg(this IEnumerable<IParameterSymbol> iter) => iter.Select(p => $"{p.RefKind.GetRefStr()}{p.Type}");
     public static IEnumerable<string> GetConstraint(this IEnumerable<ITypeParameterSymbol> iter) => iter.Select(p =>
     {
         var cst = new List<string>();
@@ -288,7 +289,23 @@ namespace {ns}
         if (p.HasNotNullConstraint) cst.Add("notnull");
         if (p.HasConstructorConstraint) cst.Add("new()");
         if (cst.Count == 0) return string.Empty;
-        return $"where {p} : {string.Join(", ", cst)}";
+        return $"where {p.Name} : {string.Join(", ", cst)}";
+    });
+
+    public static IEnumerable<string> GetConstraint(this IEnumerable<ReplaceNameTypeParameterSymbol> iter) => iter.Select(p =>
+    {
+        var cst = new List<string>();
+        foreach (var type in p.ConstraintTypes)
+        {
+            cst.Add(type.ToDisplayString());
+        }
+        if (p.HasReferenceTypeConstraint) cst.Add("class");
+        if (p.HasValueTypeConstraint) cst.Add("struct");
+        if (p.HasUnmanagedTypeConstraint) cst.Add("unmanaged");
+        if (p.HasNotNullConstraint) cst.Add("notnull");
+        if (p.HasConstructorConstraint) cst.Add("new()");
+        if (cst.Count == 0) return string.Empty;
+        return $"where {p.Name} : {string.Join(", ", cst)}";
     });
 
     public static string GetTypeOf(this INamedTypeSymbol t)
@@ -322,6 +339,16 @@ namespace {ns}
     public static bool IndexerEq(this IPropertySymbol self, IPropertySymbol other)
     {
         return ParamEq(self.Parameters, other.Parameters);
+    }
+
+    public static string GetUniqueName(this ImmutableHashSet<string> names, string name)
+    {
+        var base_name = name;
+        for (var i = 0; ; i++)
+        {
+            if (!names.Contains(name)) return name;
+            name = $"{base_name}{i + 1}";
+        }
     }
 
     public static void LogDebug(this GeneratorExecutionContext context, string msg, Location loc)

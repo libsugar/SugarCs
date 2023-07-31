@@ -16,7 +16,7 @@ public class DerefAttribute : Attribute
     /// Generated in the extension class or generated in the current class,
     /// only the current class supports deref property
     /// </summary>
-    public bool UseExtension { get; set; } = true;
+    public bool UseExtension { get; set; } = false;
     /// <summary>
     /// By default, only the deref type itself does not contain the base class of the type,
     /// -1 indicates to deref all base classes, until <see cref="object"/> or <see cref="EndBaseClass"/>
@@ -24,6 +24,10 @@ public class DerefAttribute : Attribute
     public int InheritLevels { get; set; } = 0;
     /// <summary>End base class</summary>
     public Type EndBaseClass { get; set; } = typeof(object);
+    /// <summary>
+    /// Extension class name when <see cref="UseExtension"/> = <c>true</c>
+    /// </summary>
+    public string? ExtensionName { get; set; }
 
     public DerefAttribute() { }
     public DerefAttribute(string deref) => Deref = deref;
