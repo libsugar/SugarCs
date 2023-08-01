@@ -1,7 +1,7 @@
 {
   "name": "com.libsugar.sugar",
   "displayName": "Sugar",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "unity": "2021.1",
   "description": "Like syntactic sugar, but is library",
   "files": [
@@ -27,7 +27,9 @@
     "url": "git+https://github.com/libsugar/SugarCs.git"
   },
   "keywords": [
-    "unity", "libsugar", "utility"
+    "unity",
+    "libsugar",
+    "utility"
   ],
   "author": "libsugar",
   "license": "MIT",

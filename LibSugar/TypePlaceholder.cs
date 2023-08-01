@@ -8,7 +8,7 @@ public interface ITypePlaceholder { }
 /// <summary>
 /// Type placeholder
 /// </summary>
-public sealed class _ : ITypePlaceholder { }
+public sealed class _C : ITypePlaceholder { }
 
 /// <summary>
 /// Type placeholder

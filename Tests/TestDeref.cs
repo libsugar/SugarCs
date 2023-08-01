@@ -87,7 +87,7 @@ public class Deref2Base
     public void Base() { }
 }
 
-[DerefFor<Box<Deref2<_, int>>>(InheritLevels = -1)]
+[DerefFor<Box<Deref2<_C, int>>>(InheritLevels = -1)]
 public class Deref2<A, B> : Deref2Base
 {
     public int Foo() => 1;
