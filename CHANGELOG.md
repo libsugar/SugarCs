@@ -1,3 +1,6 @@
+# 0.7.0
+  - Add Deref Generator
+
 # 0.6.0
   - Add Union Generator
   - Add `AtomicBool32`

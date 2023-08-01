@@ -180,6 +180,53 @@
             </summary>
             <typeparam name="T"></typeparam>
         </member>
+        <member name="M:LibSugar.Ref`1.#ctor(`0)">
+            <summary>
+            Pack the value into the box so that it is passed by reference
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="P:LibSugar.DerefAttribute.Deref">
+            <summary>Deref getter name</summary>
+        </member>
+        <member name="P:LibSugar.DerefAttribute.UseExtension">
+            <summary>
+            Generated in the extension class or generated in the current class,
+            only the current class supports deref property
+            </summary>
+        </member>
+        <member name="P:LibSugar.DerefAttribute.InheritLevels">
+            <summary>
+            By default, only the deref type itself does not contain the base class of the type,
+            -1 indicates to deref all base classes, until <see cref="T:System.Object"/> or <see cref="P:LibSugar.DerefAttribute.EndBaseClass"/>
+            </summary>
+        </member>
+        <member name="P:LibSugar.DerefAttribute.EndBaseClass">
+            <summary>End base class</summary>
+        </member>
+        <member name="P:LibSugar.DerefAttribute.ExtensionName">
+            <summary>
+            Extension class name when <see cref="P:LibSugar.DerefAttribute.UseExtension"/> = <c>true</c>
+            </summary>
+        </member>
+        <member name="P:LibSugar.DerefForAttribute.Deref">
+            <summary>Deref expr</summary>
+        </member>
+        <member name="P:LibSugar.DerefForAttribute.InheritLevels">
+            <summary>
+            By default, only the deref type itself does not contain the base class of the type,
+            -1 indicates to deref all base classes, until <see cref="T:System.Object"/> or <see cref="P:LibSugar.DerefForAttribute.EndBaseClass"/>
+            </summary>
+        </member>
+        <member name="P:LibSugar.DerefForAttribute.EndBaseClass">
+            <summary>End base class</summary>
+        </member>
+        <member name="P:LibSugar.DerefForAttribute.Name">
+            <summary>Extension class name</summary>
+        </member>
+        <member name="T:LibSugar.DerefFromAttribute">
+            <summary>Generated meta info mark</summary>
+        </member>
         <member name="T:LibSugar.LazyBy`1">
             <summary>
             Lazy value with params
@@ -225,6 +272,30 @@
             <summary>
             Make a lazy function
             </summary>
+        </member>
+        <member name="T:LibSugar.StructAttribute">
+            <summary>Mark type is struct</summary>
+        </member>
+        <member name="T:LibSugar.ClassAttribute">
+            <summary>Mark type is class</summary>
+        </member>
+        <member name="T:LibSugar.RecordAttribute">
+            <summary>Mark type is record</summary>
+        </member>
+        <member name="T:LibSugar.InterfaceAttribute">
+            <summary>Mark type is interface</summary>
+        </member>
+        <member name="T:LibSugar.ForAttribute">
+            <summary>Mark type generic params; Means <c>forall ∀</c></summary>
+        </member>
+        <member name="T:LibSugar.OfAttribute">
+            <summary>Mark item type</summary>
+        </member>
+        <member name="T:LibSugar.OfAttribute`1">
+            <summary>Mark item type</summary>
+        </member>
+        <member name="T:LibSugar.NameAttribute">
+            <summary>Mark item name</summary>
         </member>
         <member name="T:LibSugar.LibMath">
             <summary>
@@ -782,6 +853,21 @@
         <member name="M:LibSugar.PooledArray`1.GetHashCode">
             <summary>GetHashCode</summary>
         </member>
+        <member name="T:LibSugar.ITypePlaceholder">
+            <summary>
+            Type placeholder
+            </summary>
+        </member>
+        <member name="T:LibSugar._">
+            <summary>
+            Type placeholder
+            </summary>
+        </member>
+        <member name="T:LibSugar._S">
+            <summary>
+            Type placeholder
+            </summary>
+        </member>
         <member name="P:LibSugar.UnionAttribute.Name">
             <summary>
             Default name assoc
@@ -790,6 +876,27 @@
             EnumName    :   FooKind
             </code>
             </summary>
+        </member>
+        <member name="T:LibSugar.UResult`2">
+            <inheritdoc cref="T:LibSugar.UResultKind"/>
+        </member>
+        <member name="P:LibSugar.UResult`2.Err">
+            <inheritdoc cref="F:LibSugar.UResultKind.Err"/>
+        </member>
+        <member name="P:LibSugar.UResult`2.Ok">
+            <inheritdoc cref="F:LibSugar.UResultKind.Ok"/>
+        </member>
+        <member name="P:LibSugar.UResult`2.TryGetErr">
+            <inheritdoc cref="F:LibSugar.UResultKind.Err"/>
+        </member>
+        <member name="P:LibSugar.UResult`2.TryGetOk">
+            <inheritdoc cref="F:LibSugar.UResultKind.Ok"/>
+        </member>
+        <member name="M:LibSugar.UResult`2.MakeErr(`1)">
+            <inheritdoc cref="F:LibSugar.UResultKind.Err"/>
+        </member>
+        <member name="M:LibSugar.UResult`2.MakeOk(`0)">
+            <inheritdoc cref="F:LibSugar.UResultKind.Ok"/>
         </member>
     </members>
 </doc>
