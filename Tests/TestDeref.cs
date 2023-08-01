@@ -57,6 +57,9 @@ public class TestDerefFoo<X, Y> : TestDerefFooBase
     public void Bar() { }
     public void Asd<T>(T a) { }
     public void Qwe<T>(Task<T> a) { }
+
+    [DoNotDeref]
+    public void DoNot() {}
 }
 
 [Deref(InheritLevels = -1, EndBaseClass = typeof(TestDerefFooBase2), UseExtension = true)]
@@ -103,4 +106,18 @@ public partial class TestDeref
         var r = a.Foo();
         Assert.That(r, Is.EqualTo(1));
     }
+}
+
+[DerefFor<Box<IDeref3<_C, int>>>]
+public interface IDeref3<A, B>
+{
+    public int Foo() => 1;
+    public T Bar<T>(T a) where T : unmanaged => a;
+}
+
+
+[Deref(InheritLevels = -1, EndBaseClass = typeof(TestDerefFooBase2))]
+public partial interface IDeref4<T> : IDeref<TestDerefFoo<T, int>>
+{
+
 }

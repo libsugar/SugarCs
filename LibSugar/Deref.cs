@@ -33,7 +33,7 @@ public class DerefAttribute : Attribute
     public DerefAttribute(string deref) => Deref = deref;
 }
 
-[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = true)]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = true)]
 public class DerefForAttribute : Attribute
 {
     /// <summary>Deref expr</summary>
@@ -57,7 +57,7 @@ public class DerefForAttribute : Attribute
     }
 }
 
-[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = true)]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false, AllowMultiple = true)]
 public class DerefForAttribute<T> : DerefForAttribute
 {
     public DerefForAttribute() : base(typeof(T)) { }
@@ -67,7 +67,7 @@ public class DerefForAttribute<T> : DerefForAttribute
 
 /// <summary>Generated meta info mark</summary>
 [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
-public class DerefFromAttribute : DerefAttribute
+public class DerefFromAttribute : Attribute
 {
     public Type Source { get; set; }
     public string? Name { get; set; }
@@ -83,3 +83,6 @@ public class DerefFromAttribute : DerefAttribute
         Source = source;
     }
 }
+
+[AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
+public class DoNotDerefAttribute : Attribute { }

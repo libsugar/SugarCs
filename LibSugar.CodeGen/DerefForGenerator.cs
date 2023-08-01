@@ -144,6 +144,7 @@ public class DerefForGenerator : ISourceGenerator
                     var methods = deref_target.GetMembers().AsParallel().AsOrdered()
                         .Where(m => m is { Kind: SymbolKind.Method, IsStatic: false, CanBeReferencedByName: true })
                         .WhereCast<IMethodSymbol>()
+                        .Where(m => !m.GetAttributes().AsParallel().QueryAttrEq("LibSugar.DoNotDerefAttribute").Any())
                         .ToArray();
 
                     var gened = Gen();
