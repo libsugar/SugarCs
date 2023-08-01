@@ -24,28 +24,30 @@ public interface IRef<T> : IBox<T>
 /// </summary>
 /// <typeparam name="T"></typeparam>
 /// <param name="Value"></param>
-public record Box<T>(T Value) : IBox<T>
+public record Box<T>(T Value) : IBox<T>, IDeref<T>
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator T(Box<T> s) => s.Value;
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator Box<T>(T b) => new(b);
+
+    public T Deref => Value;
 }
 
 /// <summary>
 /// Pack the value into the box so that it is passed by reference
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public record Ref<T> : IRef<T>
+public record Ref<T>(T Value) : IRef<T>, IDeref<T>
 {
-    public T Value { get; set; }
-
-    public Ref(T val) => Value = val;
+    public T Value { get; set; } = Value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator T(Ref<T> s) => s.Value;
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator Ref<T>(T b) => new(b);
+
+    public T Deref => Value;
 }
 
 public static partial class Sugar

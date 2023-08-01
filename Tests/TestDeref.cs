@@ -81,3 +81,26 @@ public partial class TestDeref
         Assert.That(r, Is.EqualTo(1));
     }
 }
+
+public class Deref2Base
+{
+    public void Base() { }
+}
+
+[DerefFor<Box<Deref2<_, int>>>(InheritLevels = -1)]
+public class Deref2<A, B> : Deref2Base
+{
+    public int Foo() => 1;
+    public T Bar<T>(T a) where T : unmanaged => a;
+}
+
+public partial class TestDeref
+{
+    [Test]
+    public void Test2()
+    {
+        var a = new Deref2<int, int>().Box();
+        var r = a.Foo();
+        Assert.That(r, Is.EqualTo(1));
+    }
+}

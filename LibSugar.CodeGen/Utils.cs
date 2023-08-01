@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using System.Collections.Generic;
 using System.Linq;
 using System.Collections;
+using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis.CSharp;
 using System.Xml.Linq;
 using System.Collections.Immutable;
@@ -131,6 +132,26 @@ internal static class Utils
             .Where(a => a.n == name)
             .Select(static a => a.a);
 
+    public static ParallelQuery<AttributeData> QueryAttr(this ParallelQuery<AttributeData> iter, string name)
+        => iter.Select(static a => (a, n: a.AttributeClass?.ToDisplayString()))
+            .Where(a => a.n?.StartsWith(name) ?? false)
+            .Select(static a => a.a);
+
+    public static ParallelQuery<AttributeData> QueryAttrEq(this ParallelQuery<AttributeData> iter, string name)
+        => iter.Select(static a => (a, n: a.AttributeClass?.ToDisplayString()))
+            .Where(a => a.n == name)
+            .Select(static a => a.a);
+
+    public static ParallelQuery<S> QuerySymbolByName<S>(this ParallelQuery<S> iter, string name) where S : ISymbol
+        => iter.Select(static a => (a, n: a.ToDisplayString()))
+            .Where(a => a.n.StartsWith(name))
+            .Select(static a => a.a);
+
+    public static ParallelQuery<S> QuerySymbolByNameEq<S>(this ParallelQuery<S> iter, string name) where S : ISymbol
+        => iter.Select(static a => (a, n: a.ToDisplayString()))
+            .Where(a => a.n == name)
+            .Select(static a => a.a);
+
     public static IEnumerable<TypedConstant> FlatAll(this IEnumerable<TypedConstant> iter)
         => iter.SelectMany(a => a.Kind is TypedConstantKind.Array ? FlatAll(a.Values) : Enumerable.Repeat(a, 1));
 
@@ -222,6 +243,13 @@ namespace {ns}
         return $"{parent}.{name}";
     }
 
+    public static string GetName(this INamedTypeSymbol symbol)
+    {
+        var parent = symbol.GetParentName();
+        if (string.IsNullOrWhiteSpace(parent)) return symbol.Name;
+        return $"{parent}.{symbol.Name}";
+    }
+
     public static IEnumerable<R> WhereCast<T, R>(this IEnumerable<T> iter)
     {
         foreach (var item in iter)
@@ -276,37 +304,42 @@ namespace {ns}
 
     public static IEnumerable<string> ParamToArg(this IEnumerable<IParameterSymbol> iter) => iter.Select(p => $"{p.RefKind.GetRefStr()}{p.Name}");
     public static IEnumerable<string> ParamToDocArg(this IEnumerable<IParameterSymbol> iter) => iter.Select(p => $"{p.RefKind.GetRefStr()}{p.Type}");
-    public static IEnumerable<string> GetConstraint(this IEnumerable<ITypeParameterSymbol> iter) => iter.Select(p =>
+    public static string GetConstraint(this ITypeParameterSymbol p)
     {
         var cst = new List<string>();
         foreach (var type in p.ConstraintTypes)
         {
             cst.Add(type.ToDisplayString());
         }
-        if (p.HasReferenceTypeConstraint) cst.Add("class");
-        if (p.HasValueTypeConstraint) cst.Add("struct");
         if (p.HasUnmanagedTypeConstraint) cst.Add("unmanaged");
-        if (p.HasNotNullConstraint) cst.Add("notnull");
+        else if (p.HasNotNullConstraint) cst.Add("notnull");
+        else if (p.HasValueTypeConstraint) cst.Add("struct");
+        else if (p.HasReferenceTypeConstraint) cst.Add("class");
         if (p.HasConstructorConstraint) cst.Add("new()");
         if (cst.Count == 0) return string.Empty;
         return $"where {p.Name} : {string.Join(", ", cst)}";
-    });
+    }
+    public static string GetConstraint(this ReplaceNameTypeParameterSymbol p)
+    {
+        var cst = new List<string>();
+        foreach (var type in p.ConstraintTypes)
+        {
+            cst.Add(type.ToDisplayString());
+        }
+        if (p.HasUnmanagedTypeConstraint) cst.Add("unmanaged");
+        else if (p.HasNotNullConstraint) cst.Add("notnull");
+        else if (p.HasValueTypeConstraint) cst.Add("struct");
+        else if (p.HasReferenceTypeConstraint) cst.Add("class");
+        if (p.HasConstructorConstraint) cst.Add("new()");
+        if (cst.Count == 0) return string.Empty;
+        return $"where {p.Name} : {string.Join(", ", cst)}";
+    }
+    public static IEnumerable<string> GetConstraint(this IEnumerable<ITypeParameterSymbol> iter) => iter.Select(GetConstraint);
 
-    public static IEnumerable<string> GetConstraint(this IEnumerable<ReplaceNameTypeParameterSymbol> iter) => iter.Select(p =>
-    {
-        var cst = new List<string>();
-        foreach (var type in p.ConstraintTypes)
-        {
-            cst.Add(type.ToDisplayString());
-        }
-        if (p.HasReferenceTypeConstraint) cst.Add("class");
-        if (p.HasValueTypeConstraint) cst.Add("struct");
-        if (p.HasUnmanagedTypeConstraint) cst.Add("unmanaged");
-        if (p.HasNotNullConstraint) cst.Add("notnull");
-        if (p.HasConstructorConstraint) cst.Add("new()");
-        if (cst.Count == 0) return string.Empty;
-        return $"where {p.Name} : {string.Join(", ", cst)}";
-    });
+    public static IEnumerable<string> GetConstraint(this IEnumerable<ReplaceNameTypeParameterSymbol> iter) => iter.Select(GetConstraint);
+    public static ParallelQuery<string> GetConstraint(this ParallelQuery<ITypeParameterSymbol> iter) => iter.Select(GetConstraint);
+
+    public static ParallelQuery<string> GetConstraint(this ParallelQuery<ReplaceNameTypeParameterSymbol> iter) => iter.Select(GetConstraint);
 
     public static string GetTypeOf(this INamedTypeSymbol t)
     {
@@ -349,6 +382,34 @@ namespace {ns}
             if (!names.Contains(name)) return name;
             name = $"{base_name}{i + 1}";
         }
+    }
+
+    public static string CollectPlaceholder(this INamedTypeSymbol type, ImmutableHashSet<string> names, out ConcurrentDictionary<string, string> genericWithConstraint)
+    {
+        genericWithConstraint = new();
+        return CollectPlaceholder(type, names, genericWithConstraint);
+    }
+
+    public static string CollectPlaceholder(this INamedTypeSymbol type, ImmutableHashSet<string> names, ConcurrentDictionary<string, string> genericWithConstraint)
+    {
+        if (!type.IsGenericType) return type.ToDisplayString();
+        var args = type.TypeArguments.AsParallel().AsOrdered().Select((ta, i) =>
+        {
+            if (ta.AllInterfaces.AsParallel().QuerySymbolByNameEq("LibSugar.ITypePlaceholder").Any())
+            {
+                var tp = type.TypeParameters[i];
+                var name = names.GetUniqueName(tp.Name);
+                var cons = tp.GetConstraint();
+                genericWithConstraint.TryAdd(name, cons);
+                return name;
+            }
+            else
+            {
+                if (ta is INamedTypeSymbol nt) return CollectPlaceholder(nt, names, genericWithConstraint);
+                return ta.ToDisplayString();
+            }
+        }).ToArray();
+        return $"{type.GetName()}<{string.Join(", ", args)}>";
     }
 
     public static void LogDebug(this GeneratorExecutionContext context, string msg, Location loc)

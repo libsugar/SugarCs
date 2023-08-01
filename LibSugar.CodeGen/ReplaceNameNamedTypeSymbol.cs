@@ -15,11 +15,6 @@ public record ReplaceNameNamedTypeSymbol(string Name, INamedTypeSymbol Base)
         return Base.ToString();
     }
 
-    public virtual bool Equals(ISymbol? other)
-    {
-        return Base.Equals(other);
-    }
-
     public ImmutableArray<AttributeData> GetAttributes()
     {
         return Base.GetAttributes();

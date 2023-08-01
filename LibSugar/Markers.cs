@@ -3,11 +3,16 @@ using System.Runtime.CompilerServices;
 
 namespace LibSugar;
 
-public record struct Borrow<T>(T Value) : IBox<T>;
+public record struct Borrow<T>(T Value) : IBox<T>, IDeref<T>
+{
+    public T Deref => Value;
+}
 
-public record struct Owner<T>(T Value) : IBox<T>
+public record struct Owner<T>(T Value) : IBox<T>, IDeref<T>
 {
     public static implicit operator Borrow<T>(Owner<T> s) => new(s.Value);
+
+    public T Deref => Value;
 }
 
 public static partial class Sugar
