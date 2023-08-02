@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "LibSugar.CodeGen": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\TestGen\\TestGen.csproj"
+    }
+  }
+}

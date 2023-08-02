@@ -10,144 +10,157 @@ using Microsoft.CodeAnalysis.Text;
 namespace LibSugar.CodeGen;
 
 [Generator]
-public class UnionGenerator : ISourceGenerator
+public class UnionGenerator : IIncrementalGenerator
 {
-    public void Initialize(GeneratorInitializationContext context)
+    public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        context.RegisterForSyntaxNotifications(() => new UnionReceiver());
-    }
-
-    public void Execute(GeneratorExecutionContext context)
-    {
-        try
-        {
-            Execute1(context);
-        }
-        catch (Exception e)
-        {
-            context.LogError(e.ToString().Replace("\n", "    \\n    "), Location.None);
-        }
-    }
-
-    public void Execute1(GeneratorExecutionContext context)
-    {
-        var receiver = (UnionReceiver)context.SyntaxReceiver!;
-
-        var enums = context.CollectDeclSymbol(receiver.Enums);
-
-        enums.AsParallel().ForAll(enum_kv =>
-        {
-            var enum_full_name = enum_kv.Key;
-            var (enum_decl, _, enum_symbol, _) = enum_kv.Value;
-            var enum_name = enum_symbol.Name;
-
-            var name = enum_decl.Identifier.Text;
-            var attr_union = enum_symbol.GetAttributes().AsParallel().AsOrdered()
-                .QueryAttr("LibSugar.UnionAttribute")
-                .FirstOrDefault();
-            // not LibSugar's union attr
-            if (attr_union == null) return;
-
-            if (attr_union is { ConstructorArguments.Length: > 0 })
+        var source = context.SyntaxProvider.ForAttributeWithMetadataName("LibSugar.UnionAttribute",
+            (node, _) => node is EnumDeclarationSyntax,
+            (ctx, _) =>
             {
-                var first_arg = attr_union.ConstructorArguments.FirstOrDefault();
-                name = $"{first_arg.Value}";
-            }
-            else if (name.ToLower().EndsWith("kind")) name = name.Substring(0, name.Length - 4);
-            else name = $"{name}Union";
+                var syn = (EnumDeclarationSyntax)ctx.TargetNode;
+                var sym = (INamedTypeSymbol)ctx.TargetSymbol;
 
-            var attr_for = enum_symbol.GetAttributes().AsParallel().AsOrdered()
-                .QueryAttr("LibSugar.ForAttribute")
-                .FirstOrDefault();
+                var union_attr = ctx.Attributes.First();
 
-            var generics = Array.Empty<string>();
-            if (attr_for is { ConstructorArguments.Length: > 0 })
+                return (syn, sym, union_attr);
+            });
+        var enums = source
+            .Combine(context.CompilationProvider)
+            .Select((input, _) =>
             {
-                generics = attr_for.ConstructorArguments.AsParallel().AsOrdered().FlatAll().Select(a => $"{a.Value}").ToArray();
-            }
+                var ((syn, sym, union_attr), compilation) = input;
 
-            var attr_class = enum_symbol.GetAttributes().AsParallel().AsOrdered()
-                .QueryAttr("LibSugar.ClassAttribute")
-                .FirstOrDefault();
+                var attrs = sym.GetAttributes().AsParallel().AsOrdered()
+                    .Select(a => (name: a.AttributeClass?.GetFullMetaName(), a))
+                    .ToArray();
 
-            var modifiers = enum_decl.Modifiers.ToString();
-            var usings = new HashSet<string> { "using System;", "using System.Numerics;", "using System.Collections.Generic;", "using System.Runtime.InteropServices;", "using LibSugar;" };
-            Utils.GetUsings(enum_decl, usings);
+                var attr_name = attrs.AsParallel().AsOrdered()
+                    .Where(a => a.name == "LibSugar.NameAttribute")
+                    .Select(a => a.a)
+                    .FirstOrDefault();
 
-            var type_generic = generics.Length == 0 ? string.Empty : $"<{string.Join(", ", generics)}>";
-            var type_name = $"{name}{type_generic}";
-            var type_full_name = enum_symbol.ReplaceName(type_name);
+                var raw_full_name = sym.ToDisplayString();
 
-            var partial_part = context.Compilation
-                .GetSymbolsWithName(name, SymbolFilter.Type)
-                .WhereCast<ISymbol, INamedTypeSymbol>()
-                .QuerySymbolByNameEq(type_full_name)
-                .FirstOrDefault();
+                var name = sym.Name;
+                if (union_attr is { ConstructorArguments: { Length: > 0 } args } && args.First() is { Value: string v })
+                    name = v;
+                else if (attr_name is { ConstructorArguments: { Length: > 0 } arg2s } && arg2s.First() is { Value: string v2 })
+                    name = v2;
+                else if (name.EndsWith("kind", StringComparison.OrdinalIgnoreCase))
+                    name = name.Substring(0, name.Length - 4);
+                else name = $"{name}Union";
 
-            var generic_symbols = partial_part is { IsGenericType: true, TypeArguments: var tas } ? tas.ToDictionary(a => a.Name) : new();
+                var attr_for = attrs.AsParallel().AsOrdered()
+                    .Where(a => a.name == "LibSugar.ForAttribute")
+                    .Select(a => a.a)
+                    .FirstOrDefault();
 
-            var syntax_members = enum_decl.Members.AsParallel()
-                .ToDictionary(m => m.Identifier.Text);
+                var generics = ImmutableArray<string>.Empty;
+                if (attr_for is { ConstructorArguments.Length: > 0 })
+                {
+                    generics = attr_for.ConstructorArguments.AsParallel().AsOrdered().FlatAll().Select(a => $"{a.Value}").ToImmutableArray();
+                }
 
-            var members = enum_symbol.GetMembers().AsParallel().AsOrdered()
+                var attr_class = attrs.AsParallel().AsOrdered()
+                    .Where(a => a.name == "LibSugar.ClassAttribute")
+                    .Select(a => a.a)
+                    .FirstOrDefault();
+                var is_struct = attr_class == null;
+
+                var accessibility = sym.DeclaredAccessibility;
+
+                var type_generic = generics.Length == 0 ? string.Empty : $"<{string.Join(", ", generics)}>";
+                var type_name = generics.Length == 0 ? name : $"{name}{type_generic}";
+                var type_full_name = sym.ReplaceName(type_name);
+
+                var partial_part = compilation
+                    .GetSymbolsWithName(name, SymbolFilter.Type)
+                    .AsParallel().AsOrdered()
+                    .WhereCast<ISymbol, INamedTypeSymbol>()
+                    .QuerySymbolByNameEq(type_full_name)
+                    .FirstOrDefault();
+
+                var generic_symbols = partial_part is { IsGenericType: true, TypeArguments: var tas }
+                    ? tas.ToDictionary(a => a.Name)
+                    : new();
+                
+                var usings_base = new HashSet<string> { "using System;", "using System.Numerics;", "using System.Collections.Generic;", "using System.Runtime.InteropServices;", "using LibSugar;" };
+                Utils.GetUsings(syn, usings_base);
+                var usings = usings_base.ToImmutableHashSet();
+
+                var members = sym.GetMembers().AsParallel().AsOrdered()
                 .Where(m => m.Kind is SymbolKind.Field && m.IsStatic)
                 .Select(m =>
                 {
                     var member_name = m.Name;
-                    syntax_members.TryGetValue(m.Name, out var syntax);
-                    var attrs = m.GetAttributes();
-                    var attr_name = attrs.AsParallel()
-                        .QueryAttr("LibSugar.NameAttribute")
+                    var m_attrs = m.GetAttributes().AsParallel().AsOrdered()
+                        .Select(a => (name: a.AttributeClass?.GetFullMetaName(), a))
+                        .ToArray();
+                    var attr_m_name = m_attrs.AsParallel()
+                        .Where(a => a.name == "LibSugar.NameAttribute")
+                        .Select(a => a.a)
                         .FirstOrDefault();
-                    var attr_of = attrs.AsParallel()
-                        .QueryAttr("LibSugar.OfAttribute")
+                    var attr_m_of = m_attrs.AsParallel()
+                        .Where(a => a.name?.StartsWith("LibSugar.OfAttribute") ?? false)
+                        .Select(a => a.a)
                         .FirstOrDefault();
 
-                    if (attr_name is { ConstructorArguments.Length: > 0 })
+                    if (attr_m_name is { ConstructorArguments: { Length: > 0 } cargs })
                     {
-                        var first_arg = attr_name.ConstructorArguments.FirstOrDefault();
+                        var first_arg = cargs.FirstOrDefault();
                         member_name = $"{first_arg.Value}";
                     }
 
-                    ITypeSymbol? member_type = null;
-                    string? member_type_name = null;
-                    if (attr_of is { AttributeClass: not null })
+                    ITypeSymbol? member_type_sym = null;
+                    string? member_type = null;
+                    if (attr_m_of is { AttributeClass: { IsGenericType: true, TypeArguments: var targs } })
                     {
-                        var attr_class = attr_of.AttributeClass;
-                        if (attr_class.IsGenericType)
+                        member_type_sym = targs.FirstOrDefault();
+                        member_type = member_type_sym?.ToDisplayString();
+                    }
+                    else if (attr_m_of is { ConstructorArguments: { Length: > 0 } cargs1 })
+                    {
+                        var first_arg = cargs1.FirstOrDefault();
+                        if (first_arg.Kind is TypedConstantKind.Type)
                         {
-                            member_type = attr_class.TypeArguments.FirstOrDefault();
+                            member_type_sym = (ITypeSymbol)first_arg.Value!;
+                            member_type = member_type_sym?.ToDisplayString();
                         }
-                        else
+                        else if (first_arg.Kind is TypedConstantKind.Primitive)
                         {
-                            var first_arg = attr_of.ConstructorArguments.FirstOrDefault();
-                            if (first_arg.Kind is TypedConstantKind.Type)
-                            {
-                                member_type = (ITypeSymbol)first_arg.Value!;
-                            }
-                            else if (first_arg.Kind is TypedConstantKind.Primitive)
-                            {
-                                member_type_name = $"{first_arg.Value}";
-                                generic_symbols.TryGetValue(member_type_name, out member_type);
-                            }
+                            member_type = $"{first_arg.Value}";
+                            generic_symbols.TryGetValue(member_type, out member_type_sym);
                         }
                     }
 
-                    return (m, syntax, member_name, member_type, member_type_name);
+                    var is_unmanaged = member_type_sym?.IsUnmanagedType ?? false;
+
+                    var is_reference = member_type_sym?.IsReferenceType ?? false;
+
+                    var raw_name = m.Name;
+
+                    return (raw_name, member_name, member_type, is_unmanaged, is_reference);
                 })
-                .ToArray();
+                .ToImmutableArray();
+
+                return (sym, raw_full_name, name, generics, is_struct, accessibility, type_name, usings, members);
+            });
+
+        context.RegisterSourceOutput(enums, (ctx, input) =>
+        {
+            var (sym, raw_full_name, name, generics, is_struct, accessibility, type_name, usings, members) = input;
+
+            var member_readonly = is_struct ? " readonly" : string.Empty;
 
             var union_is = new string[members.Length];
             var union_get = new string[members.Length];
             var union_try_get = new string[members.Length];
             var union_make = new string[members.Length];
 
-            var isStruct = attr_class == null;
-            var member_readonly = isStruct ? " readonly" : string.Empty;
-
             GenCommon();
 
-            var gened = isStruct ? GenStruct() : GenClass();
+            var gened = is_struct ? GenStruct() : GenClass();
 
             var source_text = SourceText.From($@"// <auto-generated/>
 
@@ -155,10 +168,10 @@ public class UnionGenerator : ISourceGenerator
 
 {string.Join("\n", usings.OrderBy(u => u.Length))}
 
-{enum_symbol.WrapNameSpace(enum_symbol.WrapNestedType(gened))}
+{sym.WrapNameSpace(sym.WrapNestedType(gened))}
 ", Encoding.UTF8);
-            var source_file_name = $"{enum_full_name.Replace('<', '[').Replace('>', ']')}.union.gen.cs";
-            context.AddSource(source_file_name, source_text);
+            var source_file_name = $"{raw_full_name.Replace('<', '[').Replace('>', ']')}.union.gen.cs";
+            ctx.AddSource(source_file_name, source_text);
 
             //////////////////////////////////////////////////
 
@@ -166,8 +179,8 @@ public class UnionGenerator : ISourceGenerator
             {
                 members.AsParallel().AsOrdered().Indexed().ForAll(m =>
                 {
-                    var ((member, _, member_name, _, _), i) = m;
-                    union_is[i] = $"public{member_readonly} bool Is{member_name} => Kind is {enum_name}.{member.Name};";
+                    var ((raw_name, member_name, _, _, _), i) = m;
+                    union_is[i] = $"public{member_readonly} bool Is{member_name} => Kind is {raw_full_name}.{raw_name};";
                 });
             }
 
@@ -179,49 +192,48 @@ public class UnionGenerator : ISourceGenerator
 
                 members.AsParallel().AsOrdered().Indexed().ForAll(m =>
                 {
-                    var ((member, _, member_name, member_type, member_type_name), i) = m;
-                    var member_type_str = member_type?.ToDisplayString() ?? member_type_name;
+                    var ((member_raw_name, member_name, member_type, is_unmanaged, is_reference), i) = m;
 
-                    if (member_type_str != null)
+                    if (member_type != null)
                     {
-                        union_get[i] = $@"/// <inheritdoc cref=""{enum_symbol}.{member.Name}""/>
-    public virtual {member_type_str} Get{member_name} => default!;";
-                        union_try_get[i] = $@"/// <inheritdoc cref=""{enum_symbol}.{member.Name}""/>
-    public virtual {member_type_str}? TryGet{member_name} => default;";
+                        union_get[i] = $@"/// <inheritdoc cref=""{raw_full_name}.{member_raw_name}""/>
+    public virtual {member_type} Get{member_name} => default!;";
+                        union_try_get[i] = $@"/// <inheritdoc cref=""{raw_full_name}.{member_raw_name}""/>
+    public virtual {member_type}? TryGet{member_name} => default;";
                     }
 
-                    var member_type_value = member_type_str == null ? string.Empty : $@"
-        public {member_type_str} Value {{ get; }}
+                    var member_type_value = member_type == null ? string.Empty : $@"
+        public {member_type} Value {{ get; }}
 
-        public override {member_type_str} Get{member_name} => Value;
+        public override {member_type} Get{member_name} => Value;
 
-        public override {member_type_str}? TryGet{member_name} => Value;
+        public override {member_type}? TryGet{member_name} => Value;
 ";
-                    var ctor_arg = member_type_str == null ? string.Empty : $"{member_type_str} value";
-                    var ctor_body = member_type_str == null ? " " : $" Value = value; ";
-                    var ctor_value = member_type_str == null ? string.Empty : $"value";
+                    var ctor_arg = member_type == null ? string.Empty : $"{member_type} value";
+                    var ctor_body = member_type == null ? " " : $"this.Value = value; ";
+                    var ctor_value = member_type == null ? string.Empty : $"value";
 
-                    var i_box = member_type_str == null ? string.Empty : $", IBox<{member_type_str}>";
+                    var i_box = member_type == null ? string.Empty : $", IBox<{member_type}>";
 
-                    var eq = member_type_str == null ? string.Empty : $" && EqualityComparer<{member_type_str}>.Default.Equals(Value, other.Value)";
-                    var hash = member_type_str == null ? string.Empty : $", Value";
-                    var to_str = member_type_str == null ? string.Empty : $" {{{{ {{Value}} }}}}";
+                    var eq = member_type == null ? string.Empty : $" && EqualityComparer<{member_type}>.Default.Equals(this.Value, other.Value)";
+                    var hash = member_type == null ? string.Empty : $", this.Value";
+                    var to_str = member_type == null ? string.Empty : $" {{{{ {{this.Value}} }}}}";
 
                     union_tag_class[i] = $@"
-    /// <inheritdoc cref=""{enum_symbol}.{member.Name}""/>
+    /// <inheritdoc cref=""{raw_full_name}.{member_raw_name}""/>
     public partial class {member_name} : {type_name}, IEquatable<{member_name}>{i_box}
     {{
         public {member_name}({ctor_arg}) {{{ctor_body}}}
 
-        public override {enum_name} Kind => {enum_name}.{member.Name};
+        public override {raw_full_name} Kind => {raw_full_name}.{member_raw_name};
         {member_type_value}
         public bool Equals({member_name}? other) => other != null{eq};
 
-        public override bool Equals({type_name}? obj) => obj is {member_name} other && Equals(other);
+        public override bool Equals({type_name}? obj) => obj is {member_name} other && this.Equals(other);
 
-        public override bool Equals(object? obj) => obj is {member_name} other && Equals(other);
+        public override bool Equals(object? obj) => obj is {member_name} other && this.Equals(other);
 
-        public override int GetHashCode() => HashCode.Combine(Kind{hash});
+        public override int GetHashCode() => HashCode.Combine(this.Kind{hash});
 
         public override string ToString() => $""{name}.{member_name}{to_str}"";
     }}";
@@ -230,16 +242,16 @@ public class UnionGenerator : ISourceGenerator
                 });
 
                 return $@"
-/// <inheritdoc cref=""{enum_symbol}""/>
+/// <inheritdoc cref=""{raw_full_name}""/>
 [Union]
-{modifiers} abstract partial class {type_name} : 
+{accessibility.GetAccessStr()} abstract partial class {type_name} : 
     IEquatable<{type_name}>
 #if NET7_0_OR_GREATER
     , IEqualityOperators<{type_name}, {type_name}, bool>
 #endif
 {{
 
-    public abstract {enum_name} Kind {{ get; }}
+    public abstract {raw_full_name} Kind {{ get; }}
 
     {string.Join("\n    ", union_get.AsParallel().AsOrdered().Where(a => a != null).ToArray())}
 
@@ -275,83 +287,70 @@ public class UnionGenerator : ISourceGenerator
 
                 var union_fields = new string[members.Length];
 
-                var unmanaged_members = members.AsParallel().AsOrdered().Indexed().Where(m =>
-                {
-                    var ((_, _, _, member_type, _), _) = m;
-                    return member_type?.IsUnmanagedType ?? false;
-                }).Select(m => m.i).ToImmutableHashSet();
-
-                var ref_type_members = members.AsParallel().AsOrdered().Indexed().Where(m =>
-                {
-                    var ((_, _, _, member_type, _), _) = m;
-                    return member_type?.IsReferenceType ?? false;
-                }).Select(m => m.i).ToImmutableHashSet();
+                var unmanaged_count = members.AsParallel().Select(a => a.is_unmanaged ? 1 : 0).Sum();
+                var reference_count = members.AsParallel().Select(a => a.is_reference ? 1 : 0).Sum();
 
                 members.AsParallel().AsOrdered().Indexed().ForAll(m =>
                 {
-                    var ((member, _, member_name, member_type, member_type_name), i) = m;
-                    var member_type_str = member_type?.ToDisplayString() ?? member_type_name;
+                    var ((raw_name, member_name, member_type, is_unmanaged, is_reference), i) = m;
 
-                    if (member_type_str != null)
+                    if (member_type != null)
                     {
-                        var isUnmanaged = unmanaged_members.Count > 1 && unmanaged_members.TryGetValue(i, out _);
-                        var isRefType = ref_type_members.Count > 1 && ref_type_members.TryGetValue(i, out _);
-
-                        if (isUnmanaged)
+                        if (is_unmanaged && unmanaged_count > 1)
                         {
-                            union_get[i] = $@"/// <inheritdoc cref=""{enum_symbol}.{member.Name}""/>
-    public readonly {member_type_str} {member_name} => _union._{member_name};";
-                            union_make[i] = $@"/// <inheritdoc cref=""{enum_symbol}.{member.Name}""/>
-    public static {type_name} Make{member_name}({member_type_str} v) => new() {{ Kind = {enum_name}.{member.Name}, _union = new() {{ _{member_name} = v }} }};";
+                            union_get[i] = $@"/// <inheritdoc cref=""{raw_full_name}.{raw_name}""/>
+    public readonly {member_type} {member_name} => _union._{member_name};";
+                            union_make[i] = $@"/// <inheritdoc cref=""{raw_full_name}.{raw_name}""/>
+    public static {type_name} Make{member_name}({member_type} v) => new() {{ Kind = {raw_full_name}.{raw_name}, _union = new() {{ _{member_name} = v }} }};";
                             union_fields[i] = $@"[FieldOffset(0)]
-        public {member_type_str} _{member_name};";
+        public {member_type} _{member_name};";
                         }
-                        else if (isRefType)
+                        else if (is_reference && reference_count > 1)
                         {
-                            union_get[i] = $@"/// <inheritdoc cref=""{enum_symbol}.{member.Name}""/>
-    public readonly {member_type_str} {member_name} => ({member_type_str})_ref_type;";
-                            union_make[i] = $@"/// <inheritdoc cref=""{enum_symbol}.{member.Name}""/>
-    public static {type_name} Make{member_name}({member_type_str} v) => new() {{ Kind = {enum_name}.{member.Name}, _ref_type = v }};";
+                            union_get[i] = $@"/// <inheritdoc cref=""{raw_full_name}.{raw_name}""/>
+    public readonly {member_type} {member_name} => ({member_type})_ref_type;";
+                            union_make[i] = $@"/// <inheritdoc cref=""{raw_full_name}.{raw_name}""/>
+    public static {type_name} Make{member_name}({member_type} v) => new() {{ Kind = {raw_full_name}.{raw_name}, _ref_type = v }};";
                         }
                         else
                         {
-                            union_get[i] = $@"/// <inheritdoc cref=""{enum_symbol}.{member.Name}""/>
-    public readonly {member_type_str} {member_name} {{ get; init; }}";
-                            union_make[i] = $@"/// <inheritdoc cref=""{enum_symbol}.{member.Name}""/>
-    public static {type_name} Make{member_name}({member_type_str} v) => new() {{ Kind = {enum_name}.{member.Name}, {member_name} = v }};";
+                            union_get[i] = $@"/// <inheritdoc cref=""{raw_full_name}.{raw_name}""/>
+    public readonly {member_type} {member_name} {{ get; init; }}";
+                            union_make[i] = $@"/// <inheritdoc cref=""{raw_full_name}.{raw_name}""/>
+    public static {type_name} Make{member_name}({member_type} v) => new() {{ Kind = {raw_full_name}.{raw_name}, {member_name} = v }};";
                         }
 
-                        union_try_get[i] = $@"/// <inheritdoc cref=""{enum_symbol}.{member.Name}""/>
-    public readonly {member_type_str}? TryGet{member_name} => Is{member_name} ? {member_name} : default;";
-                        eqs[i] = $"{enum_name}.{member.Name} => EqualityComparer<{member_type_str}>.Default.Equals({member_name}, other.{member_name}),";
-                        hashs[i] = $"{enum_name}.{member.Name} => HashCode.Combine(Kind, {member_name}),";
-                        to_strs[i] = $@"{enum_name}.{member.Name} => $""{name}.{member_name} {{{{ {{{member_name}}} }}}}"",";
+                        union_try_get[i] = $@"/// <inheritdoc cref=""{raw_full_name}.{raw_name}""/>
+    public readonly {member_type}? TryGet{member_name} => Is{member_name} ? this.{member_name} : default;";
+                        eqs[i] = $"{raw_full_name}.{raw_name} => EqualityComparer<{member_type}>.Default.Equals(this.{member_name}, other.{member_name}),";
+                        hashs[i] = $"{raw_full_name}.{raw_name} => HashCode.Combine(this.Kind, this.{member_name}),";
+                        to_strs[i] = $@"{raw_full_name}.{raw_name} => $""{name}.{member_name} {{{{ {{this.{member_name}}} }}}}"",";
                     }
                     else
                     {
-                        union_make[i] = $@"/// <inheritdoc cref=""{enum_symbol}.{member.Name}""/>
-    public static {type_name} Make{member_name}() => new() {{ Kind = {enum_name}.{member.Name} }};";
-                        to_strs[i] = $@"{enum_name}.{member.Name} => $""{name}.{member_name}"",";
+                        union_make[i] = $@"/// <inheritdoc cref=""{raw_full_name}.{raw_name}""/>
+    public static {type_name} Make{member_name}() => new() {{ Kind = {raw_full_name}.{raw_name} }};";
+                        to_strs[i] = $@"{raw_full_name}.{raw_name} => $""{name}.{member_name}"",";
                     }
                 });
 
-                var union_struct = unmanaged_members.Count < 2 ? string.Empty : $@"
+                var union_struct = unmanaged_count < 2 ? string.Empty : $@"
     [StructLayout(LayoutKind.Explicit)]
     private struct _union_
     {{
         {string.Join("\n        ", union_fields.AsParallel().AsOrdered().Where(a => a != null).ToArray())}
     }}
 ";
-                var union_field = unmanaged_members.Count < 2 ? string.Empty : $@"
+                var union_field = unmanaged_count < 2 ? string.Empty : $@"
     private readonly _union_ _union {{ get; init; }}
 ";
-                var ref_type_field = ref_type_members.Count < 2 ? string.Empty : $@"private readonly object _ref_type {{ get; init; }}
+                var ref_type_field = reference_count < 2 ? string.Empty : $@"private readonly object _ref_type {{ get; init; }}
 ";
 
                 return $@"
-/// <inheritdoc cref=""{enum_symbol}""/>
+/// <inheritdoc cref=""{raw_full_name}""/>
 [Union]
-{modifiers} readonly partial struct {type_name} : 
+{accessibility.GetAccessStr()} readonly partial struct {type_name} : 
     IEquatable<{type_name}>
 #if NET7_0_OR_GREATER
     , IEqualityOperators<{type_name}, {type_name}, bool>
@@ -364,11 +363,11 @@ public class UnionGenerator : ISourceGenerator
     {string.Join("\n    ", union_is)}
     {union_field}
     {ref_type_field}
-    public readonly {enum_name} Kind {{ get; init; }}
+    public readonly {raw_full_name} Kind {{ get; init; }}
     {union_struct}
     {string.Join("\n    ", union_make)}
 
-    public readonly bool Equals({type_name} other) => Kind != other.Kind ? false : Kind switch
+    public readonly bool Equals({type_name} other) => this.Kind != other.Kind ? false : this.Kind switch
     {{
         {string.Join("\n        ", eqs.AsParallel().AsOrdered().Where(a => a != null).ToArray())}
         _ => true,
@@ -376,17 +375,17 @@ public class UnionGenerator : ISourceGenerator
 
     public readonly override bool Equals(object? obj) => obj is {type_name} other && Equals(other);
 
-    public readonly override int GetHashCode() => Kind switch
+    public readonly override int GetHashCode() => this.Kind switch
     {{
         {string.Join("\n        ", hashs.AsParallel().AsOrdered().Where(a => a != null).ToArray())}
-        _ => HashCode.Combine(Kind),
+        _ => HashCode.Combine(this.Kind),
     }};
 
     public static bool operator ==({type_name} left, {type_name} right) => Equals(left, right);
 
     public static bool operator !=({type_name} left, {type_name} right) => Equals(left, right);
 
-    public readonly override string ToString() => Kind switch
+    public readonly override string ToString() => this.Kind switch
     {{
         {string.Join("\n        ", to_strs.AsParallel().AsOrdered().Where(a => a != null).ToArray())}
         _ => ""{type_name}"",
@@ -396,28 +395,5 @@ public class UnionGenerator : ISourceGenerator
             }
 
         });
-    }
-
-    class UnionReceiver : ISyntaxReceiver
-    {
-        public readonly List<(EnumDeclarationSyntax, AttributeSyntax)> Enums = new();
-
-        public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
-        {
-            if (syntaxNode is EnumDeclarationSyntax eds)
-            {
-                foreach (var attributeList in eds.AttributeLists)
-                {
-                    foreach (var attribute in attributeList.Attributes)
-                    {
-                        if (attribute.Name.CheckAttrName("Union") || attribute.Name.CheckAttrName("UnionAttribute"))
-                        {
-                            Enums.Add((eds, attribute));
-                            return;
-                        }
-                    }
-                }
-            }
-        }
     }
 }

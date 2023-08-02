@@ -41,7 +41,7 @@ public partial class TestUnion
         A,
         [Of<int>]
         B,
-        [Of<object>]
+        [Of<Task>]
         C,
     }
 

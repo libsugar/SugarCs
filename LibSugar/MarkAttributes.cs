@@ -26,6 +26,12 @@ public class InterfaceAttribute : Attribute
 {
 }
 
+/// <summary>Mark type is interface</summary>
+[AttributeUsage(AttributeTargets.All)]
+public class TemplateAttribute : Attribute
+{
+}
+
 /// <summary>Mark type generic params; Means <c>forall ∀</c></summary>
 [AttributeUsage(AttributeTargets.All)]
 public class ForAttribute : Attribute
