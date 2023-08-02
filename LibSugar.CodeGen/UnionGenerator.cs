@@ -413,6 +413,7 @@ public class UnionGenerator : ISourceGenerator
                         if (attribute.Name.CheckAttrName("Union") || attribute.Name.CheckAttrName("UnionAttribute"))
                         {
                             Enums.Add((eds, attribute));
+                            return;
                         }
                     }
                 }

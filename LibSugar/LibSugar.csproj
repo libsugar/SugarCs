@@ -3,7 +3,7 @@
   <PropertyGroup>
 	<Configurations>Debug;Release;Unity</Configurations>
 	<TargetFrameworks>netstandard2.1;net5.0;net6.0;net7.0</TargetFrameworks>
-	<Version>0.7.2</Version>
+	<Version>0.7.3</Version>
     <Nullable>enable</Nullable>
 	<LangVersion>11.0</LangVersion>
 	<PackageProjectUrl>https://github.com/libsugar/SugarCs</PackageProjectUrl>

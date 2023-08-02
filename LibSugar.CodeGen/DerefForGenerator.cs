@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -45,8 +46,9 @@ public class DerefForGenerator : ISourceGenerator
             // not LibSugar's deref attr
             if (attr_derefs.Length == 0) return;
 
-            attr_derefs.AsParallel().ForAll(attr_deref =>
+            attr_derefs.AsParallel().Indexed().ForAll(ai =>
             {
+                var (attr_deref, index) = ai;
                 INamedTypeSymbol? deref_source = null;
                 if (attr_deref is { AttributeClass: { IsGenericType: true, TypeArguments: var type_args } })
                 {
@@ -131,7 +133,7 @@ public class DerefForGenerator : ISourceGenerator
 {sym.WrapNameSpace(string.Join("\n", results))}
 #pragma warning restore CS0693
 ", Encoding.UTF8);
-                var source_file_name = $"{sym.ToDisplayString().Replace('<', '[').Replace('>', ']')}.deref.for.gen.cs";
+                var source_file_name = $"{sym.ToDisplayString().Replace('<', '[').Replace('>', ']')}.deref.for.{index}.gen.cs";
                 context.AddSource(source_file_name, source_text);
 
                 //////////////////////////////////////////////////
@@ -249,6 +251,7 @@ public class DerefForGenerator : ISourceGenerator
                         )
                         {
                             Defs.Add((tds, attribute));
+                            return;
                         }
                     }
                 }

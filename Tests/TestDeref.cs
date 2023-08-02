@@ -121,3 +121,10 @@ public partial interface IDeref4<T> : IDeref<TestDerefFoo<T, int>>
 {
 
 }
+
+[DerefFor<Box<Deref5<_C, int>>>, DerefFor<Ref<Deref5<_C, int>>>]
+public class Deref5<A, B> : Deref2Base
+{
+    public int Foo() => 1;
+    public T Bar<T>(T a) where T : unmanaged => a;
+}
