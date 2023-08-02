@@ -5,9 +5,11 @@ VisualStudioVersion = 17.1.32319.34
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibSugar", "LibSugar\LibSugar.csproj", "{CCB3367B-70C3-4ACF-A92F-70FE5F45B70D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{DCD4FF19-5C38-42B4-BF1B-605B6E47CC31}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj", "{DCD4FF19-5C38-42B4-BF1B-605B6E47CC31}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibSugar.CodeGen", "LibSugar.CodeGen\LibSugar.CodeGen.csproj", "{C53AEA48-A9EE-4A2E-B294-B5B681A9D616}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibSugar.CodeGen", "LibSugar.CodeGen\LibSugar.CodeGen.csproj", "{C53AEA48-A9EE-4A2E-B294-B5B681A9D616}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestGen", "TestGen\TestGen.csproj", "{AA832EEF-9ED1-479A-88C6-561D13AFD5E4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -34,6 +36,12 @@ Global
 		{C53AEA48-A9EE-4A2E-B294-B5B681A9D616}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C53AEA48-A9EE-4A2E-B294-B5B681A9D616}.Unity|Any CPU.ActiveCfg = Debug|Any CPU
 		{C53AEA48-A9EE-4A2E-B294-B5B681A9D616}.Unity|Any CPU.Build.0 = Debug|Any CPU
+		{AA832EEF-9ED1-479A-88C6-561D13AFD5E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA832EEF-9ED1-479A-88C6-561D13AFD5E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA832EEF-9ED1-479A-88C6-561D13AFD5E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA832EEF-9ED1-479A-88C6-561D13AFD5E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA832EEF-9ED1-479A-88C6-561D13AFD5E4}.Unity|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA832EEF-9ED1-479A-88C6-561D13AFD5E4}.Unity|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

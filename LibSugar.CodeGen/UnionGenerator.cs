@@ -394,7 +394,7 @@ public class UnionGenerator : ISourceGenerator
 }}
 ";
             }
-            
+
         });
     }
 

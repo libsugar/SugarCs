@@ -243,11 +243,18 @@ namespace {ns}
         return $"{parent}.{name}";
     }
 
-    public static string GetName(this INamedTypeSymbol symbol)
+    public static string GetFullName(this INamedTypeSymbol symbol)
     {
         var parent = symbol.GetParentName();
         if (string.IsNullOrWhiteSpace(parent)) return symbol.Name;
         return $"{parent}.{symbol.Name}";
+    }
+
+    public static string GetFullMetaName(this ISymbol symbol)
+    {
+        var parent = symbol.ContainingSymbol;
+        if (parent == null || parent is INamespaceSymbol { IsGlobalNamespace: true }) return symbol.MetadataName;
+        return $"{GetFullMetaName(parent)}.{symbol.MetadataName}";
     }
 
     public static IEnumerable<R> WhereCast<T, R>(this IEnumerable<T> iter)
@@ -409,7 +416,7 @@ namespace {ns}
                 return ta.ToDisplayString();
             }
         }).ToArray();
-        return $"{type.GetName()}<{string.Join(", ", args)}>";
+        return $"{type.GetFullName()}<{string.Join(", ", args)}>";
     }
 
     public static void LogDebug(this GeneratorExecutionContext context, string msg, Location loc)
@@ -423,6 +430,21 @@ namespace {ns}
     }
 
     public static void LogWarning(this GeneratorExecutionContext context, string msg, Location loc)
+    {
+        context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor("Sugar", "", msg, "", DiagnosticSeverity.Warning, true), loc, DiagnosticSeverity.Warning));
+    }
+
+    public static void LogDebug(this SourceProductionContext context, string msg, Location loc)
+    {
+        context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor("DEBUG", "", msg, "", DiagnosticSeverity.Warning, true), loc, DiagnosticSeverity.Warning));
+    }
+
+    public static void LogError(this SourceProductionContext context, string msg, Location loc)
+    {
+        context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor("Sugar", "", msg, "", DiagnosticSeverity.Error, true), loc, DiagnosticSeverity.Error));
+    }
+
+    public static void LogWarning(this SourceProductionContext context, string msg, Location loc)
     {
         context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor("Sugar", "", msg, "", DiagnosticSeverity.Warning, true), loc, DiagnosticSeverity.Warning));
     }
