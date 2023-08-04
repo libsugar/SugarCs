@@ -1,5 +1,8 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Numerics;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Tests;
 
@@ -9,7 +12,7 @@ public partial class TestUnion
     public void Setup() { }
 
     /// <summary>TestDoc</summary>
-    [Union, For("TA", "TB", "TC")]
+    [Union, For("TA", "TB", "TC"), UnionJson]
     public enum Union1Kind
     {
         A,
@@ -35,7 +38,7 @@ public partial class TestUnion
 
     }
 
-    [Union]
+    [Union, UnionJson]
     public enum Union2Kind
     {
         A,
@@ -60,7 +63,7 @@ public partial class TestUnion
 
     }
 
-    [Union, For("T")]
+    [Union, For("T"), UnionJson]
     public enum Union4Kind
     {
         A,
@@ -80,7 +83,7 @@ public partial class TestUnion
         C,
     }
 
-    [Union, Class]
+    [Union, Class, UnionJson]
     public enum Union6Kind
     {
         A,

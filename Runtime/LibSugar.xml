@@ -285,6 +285,9 @@
         <member name="T:LibSugar.InterfaceAttribute">
             <summary>Mark type is interface</summary>
         </member>
+        <member name="T:LibSugar.TemplateAttribute">
+            <summary>Mark type is interface</summary>
+        </member>
         <member name="T:LibSugar.ForAttribute">
             <summary>Mark type generic params; Means <c>forall ∀</c></summary>
         </member>
@@ -875,6 +878,66 @@
             UnionName   :   Foo
             EnumName    :   FooKind
             </code>
+            </summary>
+        </member>
+        <member name="P:LibSugar.UnionJsonAttribute.WithSystemText">
+            <summary>
+            Generate System.Text.Json.Serialization.JsonConverter
+            </summary>
+        </member>
+        <member name="P:LibSugar.UnionJsonAttribute.SystemTextClassName">
+            <summary>
+            Converter class name for System.Text.Json
+            </summary>
+        </member>
+        <member name="P:LibSugar.UnionJsonAttribute.JsonMode">
+            <summary>
+            How to serialize and deserialize json
+            </summary>
+        </member>
+        <member name="P:LibSugar.UnionJsonAttribute.Tag">
+            <summary>
+            Tag name when <see cref="P:LibSugar.UnionJsonAttribute.JsonMode"/> is <see cref="F:LibSugar.UnionJsonMode.Adjacent"/>
+            </summary>
+        </member>
+        <member name="P:LibSugar.UnionJsonAttribute.Content">
+            <summary>
+            Content name when <see cref="P:LibSugar.UnionJsonAttribute.JsonMode"/> is <see cref="F:LibSugar.UnionJsonMode.Adjacent"/>
+            </summary>
+        </member>
+        <member name="P:LibSugar.UnionJsonAttribute.NumberTag">
+            <summary>
+            Use enum value as tag
+            </summary>
+        </member>
+        <member name="T:LibSugar.UnionJsonMode">
+            <summary>
+            How to serialize and deserialize json
+            </summary>
+        </member>
+        <member name="F:LibSugar.UnionJsonMode.External">
+            <summary>
+            <code>
+            { "Tag": { "a": 1 } }
+            </code>
+            </summary>
+        </member>
+        <member name="F:LibSugar.UnionJsonMode.Tuple">
+            <summary>
+            <code>
+            ["Tag", { "a": 1 }]
+            </code>
+            </summary>
+        </member>
+        <member name="F:LibSugar.UnionJsonMode.Adjacent">
+            <summary>
+            <code>
+            { "t": "Tag", "c": { "a": 1 } }
+            </code>
+            <para>
+            For System.Text.Json: <br/>
+            This object needs to be ordered, "t" must come before "c"
+            </para>
             </summary>
         </member>
         <member name="T:LibSugar.UResult`2">

@@ -70,8 +70,9 @@ public class UnionGenerator : IIncrementalGenerator
 
                 var accessibility = sym.DeclaredAccessibility;
 
-                var type_generic = generics.Length == 0 ? string.Empty : $"<{string.Join(", ", generics)}>";
-                var type_name = generics.Length == 0 ? name : $"{name}{type_generic}";
+                var has_generic = generics.Length > 0;
+                var type_generic = has_generic ? $"<{string.Join(", ", generics)}>" : string.Empty;
+                var type_name = has_generic ? $"{name}{type_generic}" : name;
                 var type_full_name = sym.ReplaceName(type_name);
 
                 var partial_part = compilation
@@ -84,10 +85,15 @@ public class UnionGenerator : IIncrementalGenerator
                 var generic_symbols = partial_part is { IsGenericType: true, TypeArguments: var tas }
                     ? tas.ToDictionary(a => a.Name)
                     : new();
-                
+
+                var generic_parameters = partial_part is { IsGenericType: true, TypeParameters: var tps }
+                    ? tps
+                    : ImmutableArray<ITypeParameterSymbol>.Empty;
+
+                var constraints = string.Join(" ", generic_parameters.AsParallel().AsOrdered().GetConstraint().ToArray());
+
                 var usings_base = new HashSet<string> { "using System;", "using System.Numerics;", "using System.Collections.Generic;", "using System.Runtime.InteropServices;", "using LibSugar;" };
                 Utils.GetUsings(syn, usings_base);
-                var usings = usings_base.ToImmutableHashSet();
 
                 var members = sym.GetMembers().AsParallel().AsOrdered()
                 .Where(m => m.Kind is SymbolKind.Field && m.IsStatic)
@@ -103,6 +109,10 @@ public class UnionGenerator : IIncrementalGenerator
                         .FirstOrDefault();
                     var attr_m_of = m_attrs.AsParallel()
                         .Where(a => a.name?.StartsWith("LibSugar.OfAttribute") ?? false)
+                        .Select(a => a.a)
+                        .FirstOrDefault();
+                    var attr_m_json_name = m_attrs.AsParallel()
+                        .Where(a => a.name == "LibSugar.UnionJsonNameAttribute")
                         .Select(a => a.a)
                         .FirstOrDefault();
 
@@ -140,16 +150,37 @@ public class UnionGenerator : IIncrementalGenerator
 
                     var raw_name = m.Name;
 
-                    return (raw_name, member_name, member_type, is_unmanaged, is_reference);
+                    string json_name = member_name;
+                    if (attr_m_json_name is { ConstructorArguments: { Length: > 0 } cargs_json })
+                    {
+                        var first_arg = cargs_json.FirstOrDefault();
+                        json_name = $"{first_arg.Value}";
+                    }
+
+                    return (raw_name, member_name, member_type, is_unmanaged, is_reference, json_name);
                 })
                 .ToImmutableArray();
 
-                return (sym, raw_full_name, name, generics, is_struct, accessibility, type_name, usings, members);
+                var attr_json = attrs.AsParallel().AsOrdered()
+                    .Where(a => a.name == "LibSugar.UnionJsonAttribute")
+                    .Select(a => a.a)
+                    .FirstOrDefault();
+                var json = GetJsonInfo(attr_json);
+
+                if (json?.WithSystemText ?? false)
+                {
+                    usings_base.Add("using System.Text.Json;");
+                    usings_base.Add("using System.Text.Json.Serialization;");
+                }
+
+                var usings = usings_base.ToImmutableHashSet();
+
+                return (sym, raw_full_name, name, generics, is_struct, accessibility, has_generic, type_generic, constraints, type_name, usings, members, json);
             });
 
         context.RegisterSourceOutput(enums, (ctx, input) =>
         {
-            var (sym, raw_full_name, name, generics, is_struct, accessibility, type_name, usings, members) = input;
+            var (sym, raw_full_name, name, generics, is_struct, accessibility, has_generic, type_generic, constraints, type_name, usings, members, json) = input;
 
             var member_readonly = is_struct ? " readonly" : string.Empty;
 
@@ -157,6 +188,13 @@ public class UnionGenerator : IIncrementalGenerator
             var union_get = new string[members.Length];
             var union_try_get = new string[members.Length];
             var union_make = new string[members.Length];
+
+            var gen_system_text_json = json?.WithSystemText ?? false;
+            var gen_json = gen_system_text_json;
+            var json_system_text_name = json?.SystemTextClassName ?? (gen_json ? $"{name}JsonConverter" : string.Empty);
+            var json_attr = gen_json && !has_generic ? $", JsonConverter(typeof({json_system_text_name}))" : string.Empty;
+
+            //////////////////////////////////////////////////
 
             GenCommon();
 
@@ -170,8 +208,26 @@ public class UnionGenerator : IIncrementalGenerator
 
 {sym.WrapNameSpace(sym.WrapNestedType(gened))}
 ", Encoding.UTF8);
-            var source_file_name = $"{raw_full_name.Replace('<', '[').Replace('>', ']')}.union.gen.cs";
+            var raw_source_file_name = $"{raw_full_name.Replace('<', '[').Replace('>', ']')}";
+            var source_file_name = $"{raw_source_file_name}.union.gen.cs";
             ctx.AddSource(source_file_name, source_text);
+
+            //////////////////////////////////////////////////
+
+            if (json.HasValue && gen_json && gen_system_text_json)
+            {
+                var json_gened = GenSystemTextJson(json.Value);
+                var json_source_text = SourceText.From($@"// <auto-generated/>
+
+#nullable enable
+
+{string.Join("\n", usings.OrderBy(u => u.Length))}
+
+{sym.WrapNameSpace(sym.WrapNestedType(json_gened))}
+", Encoding.UTF8);
+                var json_source_file_name = $"{raw_source_file_name}.union.json.gen.cs";
+                ctx.AddSource(json_source_file_name, json_source_text);
+            }
 
             //////////////////////////////////////////////////
 
@@ -179,7 +235,7 @@ public class UnionGenerator : IIncrementalGenerator
             {
                 members.AsParallel().AsOrdered().Indexed().ForAll(m =>
                 {
-                    var ((raw_name, member_name, _, _, _), i) = m;
+                    var ((raw_name, member_name, _, _, _, _), i) = m;
                     union_is[i] = $"public{member_readonly} bool Is{member_name} => Kind is {raw_full_name}.{raw_name};";
                 });
             }
@@ -190,9 +246,14 @@ public class UnionGenerator : IIncrementalGenerator
             {
                 var union_tag_class = new string[members.Length];
 
+                var meta_name_to_kind = new string[members.Length];
+                var meta_kind_to_name = new string[members.Length];
+                var meta_variant_types = new string[members.Length];
+                var meta_json_name_to_kind = new string[members.Length];
+
                 members.AsParallel().AsOrdered().Indexed().ForAll(m =>
                 {
-                    var ((member_raw_name, member_name, member_type, is_unmanaged, is_reference), i) = m;
+                    var ((member_raw_name, member_name, member_type, is_unmanaged, is_reference, json_name), i) = m;
 
                     if (member_type != null)
                     {
@@ -200,6 +261,8 @@ public class UnionGenerator : IIncrementalGenerator
     public virtual {member_type} Get{member_name} => default!;";
                         union_try_get[i] = $@"/// <inheritdoc cref=""{raw_full_name}.{member_raw_name}""/>
     public virtual {member_type}? TryGet{member_name} => default;";
+
+                        meta_variant_types[i] = $@"{{ {raw_full_name}.{member_raw_name}, typeof({member_type})  }}";
                     }
 
                     var member_type_value = member_type == null ? string.Empty : $@"
@@ -218,6 +281,10 @@ public class UnionGenerator : IIncrementalGenerator
                     var eq = member_type == null ? string.Empty : $" && EqualityComparer<{member_type}>.Default.Equals(this.Value, other.Value)";
                     var hash = member_type == null ? string.Empty : $", this.Value";
                     var to_str = member_type == null ? string.Empty : $" {{{{ {{this.Value}} }}}}";
+
+                    meta_name_to_kind[i] = $@"{{ ""{member_name}"" , {raw_full_name}.{member_raw_name} }}";
+                    meta_kind_to_name[i] = $@"{{ {raw_full_name}.{member_raw_name}, ""{member_name}""  }}";
+                    meta_json_name_to_kind[i] = $@"{{ ""{json_name}"" , {raw_full_name}.{member_raw_name} }}, {{ $""{{{raw_full_name}.{member_raw_name}:D}}"" , {raw_full_name}.{member_raw_name} }}";
 
                     union_tag_class[i] = $@"
     /// <inheritdoc cref=""{raw_full_name}.{member_raw_name}""/>
@@ -243,7 +310,7 @@ public class UnionGenerator : IIncrementalGenerator
 
                 return $@"
 /// <inheritdoc cref=""{raw_full_name}""/>
-[Union]
+[Union{json_attr}]
 {accessibility.GetAccessStr()} abstract partial class {type_name} : 
     IEquatable<{type_name}>
 #if NET7_0_OR_GREATER
@@ -273,6 +340,13 @@ public class UnionGenerator : IIncrementalGenerator
 
     public abstract override string ToString();
     {string.Join("\n    ", union_tag_class)}
+
+    public static UnionMeta<{raw_full_name}> UnionMeta {{ get; }} = new(
+        new() {{ {string.Join(", ", meta_name_to_kind)} }},
+        new() {{ {string.Join(", ", meta_kind_to_name)} }},
+        new() {{ {string.Join(", ", meta_variant_types.AsParallel().AsOrdered().Where(a => a != null).ToArray())} }},
+        new() {{ {string.Join(", ", meta_json_name_to_kind)} }}
+    );
 }}
 ";
             }
@@ -290,9 +364,14 @@ public class UnionGenerator : IIncrementalGenerator
                 var unmanaged_count = members.AsParallel().Select(a => a.is_unmanaged ? 1 : 0).Sum();
                 var reference_count = members.AsParallel().Select(a => a.is_reference ? 1 : 0).Sum();
 
+                var meta_name_to_kind = new string[members.Length];
+                var meta_kind_to_name = new string[members.Length];
+                var meta_variant_types = new string[members.Length];
+                var meta_json_name_to_kind = new string[members.Length];
+
                 members.AsParallel().AsOrdered().Indexed().ForAll(m =>
                 {
-                    var ((raw_name, member_name, member_type, is_unmanaged, is_reference), i) = m;
+                    var ((raw_name, member_name, member_type, is_unmanaged, is_reference, json_name), i) = m;
 
                     if (member_type != null)
                     {
@@ -325,6 +404,8 @@ public class UnionGenerator : IIncrementalGenerator
                         eqs[i] = $"{raw_full_name}.{raw_name} => EqualityComparer<{member_type}>.Default.Equals(this.{member_name}, other.{member_name}),";
                         hashs[i] = $"{raw_full_name}.{raw_name} => HashCode.Combine(this.Kind, this.{member_name}),";
                         to_strs[i] = $@"{raw_full_name}.{raw_name} => $""{name}.{member_name} {{{{ {{this.{member_name}}} }}}}"",";
+
+                        meta_variant_types[i] = $@"{{ {raw_full_name}.{raw_name}, typeof({member_type})  }}";
                     }
                     else
                     {
@@ -332,6 +413,10 @@ public class UnionGenerator : IIncrementalGenerator
     public static {type_name} Make{member_name}() => new() {{ Kind = {raw_full_name}.{raw_name} }};";
                         to_strs[i] = $@"{raw_full_name}.{raw_name} => $""{name}.{member_name}"",";
                     }
+
+                    meta_name_to_kind[i] = $@"{{ ""{member_name}"" , {raw_full_name}.{raw_name} }}";
+                    meta_kind_to_name[i] = $@"{{ {raw_full_name}.{raw_name}, ""{member_name}""  }}";
+                    meta_json_name_to_kind[i] = $@"{{ ""{json_name}"" , {raw_full_name}.{raw_name} }}, {{ $""{{{raw_full_name}.{raw_name}:D}}"" , {raw_full_name}.{raw_name} }}";
                 });
 
                 var union_struct = unmanaged_count < 2 ? string.Empty : $@"
@@ -349,7 +434,7 @@ public class UnionGenerator : IIncrementalGenerator
 
                 return $@"
 /// <inheritdoc cref=""{raw_full_name}""/>
-[Union]
+[Union{json_attr}]
 {accessibility.GetAccessStr()} readonly partial struct {type_name} : 
     IEquatable<{type_name}>
 #if NET7_0_OR_GREATER
@@ -388,12 +473,314 @@ public class UnionGenerator : IIncrementalGenerator
     public readonly override string ToString() => this.Kind switch
     {{
         {string.Join("\n        ", to_strs.AsParallel().AsOrdered().Where(a => a != null).ToArray())}
-        _ => ""{type_name}"",
+        _ => ""{name}"",
     }};
+
+    public static UnionMeta<{raw_full_name}> UnionMeta {{ get; }} = new(
+        new() {{ {string.Join(", ", meta_name_to_kind)} }},
+        new() {{ {string.Join(", ", meta_kind_to_name)} }},
+        new() {{ {string.Join(", ", meta_variant_types.AsParallel().AsOrdered().Where(a => a != null).ToArray())} }},
+        new() {{ {string.Join(", ", meta_json_name_to_kind)} }}
+    );
 }}
 ";
             }
 
+            //////////////////////////////////////////////////
+
+            string GenSystemTextJson(JsonInfo info)
+            {
+                var can_convert_types = is_struct ? Array.Empty<string>() : new string[members.Length];
+                var reads = new string[members.Length];
+                var writes = new string[members.Length];
+
+                var t = info.Tag;
+                var c = info.Content;
+
+                var get = is_struct ? string.Empty : "Get";
+
+                members.AsParallel().AsOrdered().Indexed().ForAll(mi =>
+                {
+                    var ((raw_name, member_name, member_type, is_unmanaged, is_reference, json_name), i) = mi;
+
+                    var tag = info.NumberTag ? $@"$""{{{raw_full_name}.{raw_name}:D}}""" : $@"""{json_name}""";
+
+                    if (!is_struct)
+                    {
+                        can_convert_types[i] = $"typeof({type_name}.{member_name})";
+                    }
+
+                    switch (info.JsonMode)
+                    {
+                        case UnionJsonMode.Tuple:
+                            {
+                                if (member_type == null)
+                                {
+                                    reads[i] = $@"
+            case {raw_full_name}.{raw_name}: 
+            {{
+                result = {type_name}.Make{member_name}();
+                break;
+            }}";
+                                    writes[i] = $@"
+            case {raw_full_name}.{raw_name}: 
+            {{
+                writer.WriteStringValue({tag});
+                writer.WriteNullValue();
+                break;
+            }}";
+                                }
+                                else
+                                {
+                                    reads[i] = $@"
+            case {raw_full_name}.{raw_name}: 
+            {{
+                var type = typeof({member_type});
+                var conv = (JsonConverter<{member_type}>)options.GetConverter(type);
+                var v = conv.Read(ref reader, type, options);
+                result = {type_name}.Make{member_name}(v!);
+                break;
+            }}";
+                                    writes[i] = $@"
+            case {raw_full_name}.{raw_name}: 
+            {{
+                writer.WriteStringValue({tag});
+                var conv = (JsonConverter<{member_type}>)options.GetConverter(typeof({member_type}));
+                conv.Write(writer, value.{get}{member_name}, options);
+                break;
+            }}";
+                                }
+                                break;
+                            }
+                        case UnionJsonMode.Adjacent:
+                            {
+                                if (member_type == null)
+                                {
+                                    reads[i] = $@"
+            case {raw_full_name}.{raw_name}: 
+            {{
+                result = {type_name}.Make{member_name}();
+                break;
+            }}";
+                                    writes[i] = $@"
+            case {raw_full_name}.{raw_name}: 
+            {{
+                writer.WriteString(""{t}"", {tag});
+                writer.WriteNull(""{c}"");
+                break;
+            }}";
+                                }
+                                else
+                                {
+                                    reads[i] = $@"
+            case {raw_full_name}.{raw_name}: 
+            {{
+                var type = typeof({member_type});
+                var conv = (JsonConverter<{member_type}>)options.GetConverter(type);
+                var v = conv.Read(ref reader, type, options);
+                result = {type_name}.Make{member_name}(v!);
+                break;
+            }}";
+                                    writes[i] = $@"
+            case {raw_full_name}.{raw_name}: 
+            {{
+                writer.WriteString(""{t}"", {tag});
+                writer.WritePropertyName(""{c}"");
+                var conv = (JsonConverter<{member_type}>)options.GetConverter(typeof({member_type}));
+                conv.Write(writer, value.{get}{member_name}, options);
+                break;
+            }}";
+                                }
+                                break;
+                            }
+                        default:
+                            {
+                                if (member_type == null)
+                                {
+                                    reads[i] = $@"
+            case {raw_full_name}.{raw_name}: 
+            {{
+                result = {type_name}.Make{member_name}();
+                break;
+            }}";
+                                    writes[i] = $@"
+            case {raw_full_name}.{raw_name}: 
+            {{
+                writer.WriteNull({tag});
+                break;
+            }}";
+                                }
+                                else
+                                {
+                                    reads[i] = $@"
+            case {raw_full_name}.{raw_name}: 
+            {{
+                var type = typeof({member_type});
+                var conv = (JsonConverter<{member_type}>)options.GetConverter(type);
+                var v = conv.Read(ref reader, type, options);
+                result = {type_name}.Make{member_name}(v!);
+                break;
+            }}";
+                                    writes[i] = $@"
+            case {raw_full_name}.{raw_name}: 
+            {{
+                writer.WritePropertyName({tag});
+                var conv = (JsonConverter<{member_type}>)options.GetConverter(typeof({member_type}));
+                conv.Write(writer, value.{get}{member_name}, options);
+                break;
+            }}";
+                                }
+                                break;
+                            }
+                    }
+                });
+
+                string read;
+                string write;
+                switch (info.JsonMode)
+                {
+                    case UnionJsonMode.Tuple:
+                        {
+                            read = $@"if (reader.TokenType is not JsonTokenType.StartArray) throw new JsonException();
+        reader.Read();
+        var meta = {type_name}.UnionMeta;
+        if (!meta.JsonNameToKind.TryGetValue(reader.GetString()!, out var kind)) throw new JsonException();
+        reader.Read();
+        {type_name} result;
+        switch (kind)
+        {{{string.Join("", reads.Where(a => !string.IsNullOrEmpty(a)))}
+            default: throw new ArgumentOutOfRangeException();
+        }}
+        reader.Read();
+        if (reader.TokenType is not JsonTokenType.EndArray) throw new JsonException();
+        return result;
+        ";
+                            write = $@"writer.WriteStartArray();
+        switch (value.Kind)
+        {{{string.Join("", writes.Where(a => !string.IsNullOrEmpty(a)))}
+            default: throw new ArgumentOutOfRangeException();
+        }}
+        writer.WriteEndArray();";
+                            break;
+                        }
+                    case UnionJsonMode.Adjacent:
+                        {
+                            read = $@"if (reader.TokenType is not JsonTokenType.StartObject) throw new JsonException();
+        reader.Read();
+        if (reader.TokenType is not JsonTokenType.PropertyName) throw new JsonException();
+        if (reader.GetString() != ""{t}"") throw new JsonException();
+        reader.Read();
+        var meta = {type_name}.UnionMeta;
+        if (!meta.JsonNameToKind.TryGetValue(reader.GetString()!, out var kind)) throw new JsonException();
+        reader.Read();
+        if (reader.TokenType is not JsonTokenType.PropertyName) throw new JsonException();
+        if (reader.GetString() != ""{c}"") throw new JsonException();
+        reader.Read();
+        {type_name} result;
+        switch (kind)
+        {{{string.Join("", reads.Where(a => !string.IsNullOrEmpty(a)))}
+            default: throw new ArgumentOutOfRangeException();
+        }}
+        reader.Read();
+        if (reader.TokenType is not JsonTokenType.EndObject) throw new JsonException();
+        return result;
+        ";
+                            write = $@"writer.WriteStartObject();
+        switch (value.Kind)
+        {{{string.Join("", writes.Where(a => !string.IsNullOrEmpty(a)))}
+            default: throw new ArgumentOutOfRangeException();
+        }}
+        writer.WriteEndObject();";
+                            break;
+                        }
+                    default:
+                        {
+                            read = $@"if (reader.TokenType is not JsonTokenType.StartObject) throw new JsonException();
+        reader.Read();
+        if (reader.TokenType is not JsonTokenType.PropertyName) throw new JsonException();
+        var meta = {type_name}.UnionMeta;
+        if (!meta.JsonNameToKind.TryGetValue(reader.GetString()!, out var kind)) throw new JsonException();
+        reader.Read();
+        {type_name} result;
+        switch (kind)
+        {{{string.Join("", reads.Where(a => !string.IsNullOrEmpty(a)))}
+            default: throw new ArgumentOutOfRangeException();
+        }}
+        reader.Read();
+        if (reader.TokenType is not JsonTokenType.EndObject) throw new JsonException();
+        return result;
+        ";
+                            write = $@"writer.WriteStartObject();
+        switch (value.Kind)
+        {{{string.Join("", writes.Where(a => !string.IsNullOrEmpty(a)))}
+            default: throw new ArgumentOutOfRangeException();
+        }}
+        writer.WriteEndObject();";
+                            break;
+                        }
+                }
+
+                var can_convert = is_struct ? string.Empty : $@"
+    private static readonly HashSet<Type> CanConvertTypes = new() {{ typeof({type_name}), {string.Join(", ", can_convert_types)} }};
+
+    public override bool CanConvert(Type typeToConvert) => CanConvertTypes.Contains(typeToConvert);
+";
+
+                return $@"
+{accessibility.GetAccessStr()} partial class {json_system_text_name}{type_generic} : JsonConverter<{type_name}> {constraints}
+{{{can_convert}
+    public override {type_name} Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {{
+        {read}
+    }}
+
+    public override void Write(Utf8JsonWriter writer, {type_name} value, JsonSerializerOptions options)
+    {{
+        {write}
+    }}
+}}
+";
+            }
         });
     }
+
+    public JsonInfo? GetJsonInfo(AttributeData? attr_json)
+    {
+        if (attr_json == null) return null;
+        var args = attr_json.NamedArguments.AsParallel()
+            .ToDictionary(a => a.Key, a => a.Value);
+        var WithSystemText = args.TryGet("WithSystemText")?.Value is not false;
+        var SystemTextClassName = args.TryGet("SystemTextClassName")?.Value as string;
+        var JsonMode = args.TryGet("JsonMode")?.Value is int i ? (UnionJsonMode)i : 0;
+        var Tag = args.TryGet("Tag")?.Value as string ?? "t";
+        var Content = args.TryGet("Content")?.Value as string ?? "c";
+        var NumberTag = args.TryGet("NumberTag")?.Value is true;
+        return new JsonInfo
+        {
+            WithSystemText = WithSystemText,
+            SystemTextClassName = SystemTextClassName,
+            JsonMode = JsonMode,
+            Tag = Tag,
+            Content = Content,
+            NumberTag = NumberTag,
+        };
+    }
+
+    public record struct JsonInfo
+    {
+        public bool WithSystemText { get; set; }
+        public string? SystemTextClassName { get; set; }
+        public UnionJsonMode JsonMode { get; set; }
+        public string Tag { get; set; }
+        public string Content { get; set; }
+        public bool NumberTag { get; set; }
+    }
+
+    public enum UnionJsonMode
+    {
+        External,
+        Tuple,
+        Adjacent,
+    }
+
 }

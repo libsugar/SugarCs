@@ -449,3 +449,15 @@ namespace {ns}
         context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor("Sugar", "", msg, "", DiagnosticSeverity.Warning, true), loc, DiagnosticSeverity.Warning));
     }
 }
+
+public static class UtilsClass
+{
+    public static V? TryGet<K, V>(this Dictionary<K, V> self, K key) where V : class where K : notnull =>
+        self.TryGetValue(key, out var val) ? val : null;
+}
+
+public static class UtilsStruct
+{
+    public static V? TryGet<K, V>(this Dictionary<K, V> self, K key) where V : struct where K : notnull =>
+        self.TryGetValue(key, out var val) ? val : null;
+}

@@ -3,8 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LibSugar;
 
@@ -17,6 +15,7 @@ public static partial class Sugar
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IEnumerable<T> Repeat<T>(this T v, int count) => Enumerable.Repeat(v, count);
 
+
     public static string JoinStr<T>(this IEnumerable<T> iter) => string.Join(", ", iter);
     public static string JoinStr<T>(this IEnumerable<T> iter, char separator) => string.Join(separator, iter);
     public static string JoinStr<T>(this IEnumerable<T> iter, string separator) => string.Join(separator, iter);
@@ -27,9 +26,11 @@ public static partial class Sugar
     public static string JoinStr(this string[] arr, char separator) => string.Join(separator, arr);
     public static string JoinStr(this string[] arr, string separator) => string.Join(separator, arr);
 
+
     public static IEnumerable<(T a, int i)> Indexed<T>(this IEnumerable<T> iter) => iter.Select((a, b) => (a, b));
 
     public static ParallelQuery<(T a, int i)> Indexed<T>(this ParallelQuery<T> iter) => iter.Select((a, b) => (a, b));
+
 
     public static IEnumerable<R> WhereSelect<T, R>(this IEnumerable<T> iter, Func<T, Option<R>> f)
         => iter.Select(f).Where(a => a.Has).Select(a => a.Value);
@@ -50,6 +51,7 @@ public static partial class Sugar
 
     public static ParallelQuery<R> WhereCast<T, R>(this ParallelQuery<T> iter)
         => iter.Where(a => a is R).Cast<R>();
+
 
     /// <summary>ForEach for <see cref="IEnumerable&lt;T&gt;"/></summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -91,4 +93,112 @@ public static partial class Sugar
         }
         return new();
     }
+
+    #region IEnumerable ByX
+
+#if !NET6_0_OR_GREATER
+
+    public static IEnumerable<T> DistinctBy<T, D>(this IEnumerable<T> iter, Func<T, D> f)
+        => iter.Distinct(EqBy(f));
+
+    public static IEnumerable<T> DistinctBy<T, D>(this IEnumerable<T> iter, IEqualityComparer<D> equality, Func<T, D> f)
+        => iter.Distinct(EqBy(f, equality));
+
+    public static IEnumerable<T> DistinctBy<T, D>(this IEnumerable<T> iter, Func<T, D> f, IEqualityComparer<D> equality)
+        => iter.Distinct(EqBy(f, equality));
+
+
+    public static IEnumerable<T> UnionBy<T, D>(this IEnumerable<T> iter, IEnumerable<T> other, Func<T, D> f)
+        => iter.Union(other, EqBy(f));
+
+    public static IEnumerable<T> UnionBy<T, D>(this IEnumerable<T> iter, IEnumerable<T> other, IEqualityComparer<D> equality, Func<T, D> f)
+        => iter.Union(other, EqBy(f, equality));
+
+    public static IEnumerable<T> UnionBy<T, D>(this IEnumerable<T> iter, IEnumerable<T> other, Func<T, D> f, IEqualityComparer<D> equality)
+        => iter.Union(other, EqBy(f, equality));
+
+#else
+
+    public static IEnumerable<T> DistinctBy<T, D>(this IEnumerable<T> iter, IEqualityComparer<D> equality, Func<T, D> f)
+        => iter.DistinctBy(f, equality);
+
+
+    public static IEnumerable<T> ExceptBy<T, D>(this IEnumerable<T> iter, IEnumerable<D> other, IEqualityComparer<D> equality, Func<T, D> f)
+        => iter.ExceptBy(other, f, equality);
+
+
+    public static IEnumerable<T> IntersectBy<T, D>(this IEnumerable<T> iter, IEnumerable<D> other, IEqualityComparer<D> equality, Func<T, D> f)
+        => iter.IntersectBy(other, f, equality);
+
+
+    public static IEnumerable<T> UnionBy<T, D>(this IEnumerable<T> iter, IEnumerable<T> other, IEqualityComparer<D> equality, Func<T, D> f)
+        => iter.UnionBy(other, f, equality);
+
+#endif
+
+    public static IEnumerable<T> ExceptBy<T, D>(this IEnumerable<T> iter, IEnumerable<T> other, Func<T, D> f)
+        => iter.Except(other, EqBy(f));
+
+    public static IEnumerable<T> ExceptBy<T, D>(this IEnumerable<T> iter, IEnumerable<T> other, IEqualityComparer<D> equality, Func<T, D> f)
+        => iter.Except(other, EqBy(f, equality));
+
+    public static IEnumerable<T> ExceptBy<T, D>(this IEnumerable<T> iter, IEnumerable<T> other, Func<T, D> f, IEqualityComparer<D> equality)
+        => iter.Except(other, EqBy(f, equality));
+
+
+    public static IEnumerable<T> IntersectBy<T, D>(this IEnumerable<T> iter, IEnumerable<T> other, Func<T, D> f)
+        => iter.Intersect(other, EqBy(f));
+
+    public static IEnumerable<T> IntersectBy<T, D>(this IEnumerable<T> iter, IEnumerable<T> other, IEqualityComparer<D> equality, Func<T, D> f)
+        => iter.Intersect(other, EqBy(f, equality));
+
+    public static IEnumerable<T> IntersectBy<T, D>(this IEnumerable<T> iter, IEnumerable<T> other, Func<T, D> f, IEqualityComparer<D> equality)
+        => iter.Intersect(other, EqBy(f, equality));
+
+    #endregion
+
+
+    #region ParallelQuery ByX
+
+    public static ParallelQuery<T> DistinctBy<T, D>(this ParallelQuery<T> iter, Func<T, D> f)
+        => iter.Distinct(EqBy(f));
+
+    public static ParallelQuery<T> DistinctBy<T, D>(this ParallelQuery<T> iter, IEqualityComparer<D> equality, Func<T, D> f)
+        => iter.Distinct(EqBy(f, equality));
+
+    public static ParallelQuery<T> DistinctBy<T, D>(this ParallelQuery<T> iter, Func<T, D> f, IEqualityComparer<D> equality)
+        => iter.Distinct(EqBy(f, equality));
+
+
+    public static ParallelQuery<T> ExceptBy<T, D>(this ParallelQuery<T> iter, ParallelQuery<T> other, Func<T, D> f)
+        => iter.Except(other, EqBy(f));
+
+    public static ParallelQuery<T> ExceptBy<T, D>(this ParallelQuery<T> iter, ParallelQuery<T> other, IEqualityComparer<D> equality, Func<T, D> f)
+        => iter.Except(other, EqBy(f, equality));
+
+    public static ParallelQuery<T> ExceptBy<T, D>(this ParallelQuery<T> iter, ParallelQuery<T> other, Func<T, D> f, IEqualityComparer<D> equality)
+        => iter.Except(other, EqBy(f, equality));
+
+
+    public static ParallelQuery<T> IntersectBy<T, D>(this ParallelQuery<T> iter, ParallelQuery<T> other, Func<T, D> f)
+        => iter.Intersect(other, EqBy(f));
+
+    public static ParallelQuery<T> IntersectBy<T, D>(this ParallelQuery<T> iter, ParallelQuery<T> other, IEqualityComparer<D> equality, Func<T, D> f)
+        => iter.Intersect(other, EqBy(f, equality));
+
+    public static ParallelQuery<T> IntersectBy<T, D>(this ParallelQuery<T> iter, ParallelQuery<T> other, Func<T, D> f, IEqualityComparer<D> equality)
+        => iter.Intersect(other, EqBy(f, equality));
+
+
+    public static ParallelQuery<T> UnionBy<T, D>(this ParallelQuery<T> iter, ParallelQuery<T> other, Func<T, D> f)
+        => iter.Union(other, EqBy(f));
+
+    public static ParallelQuery<T> UnionBy<T, D>(this ParallelQuery<T> iter, ParallelQuery<T> other, IEqualityComparer<D> equality, Func<T, D> f)
+        => iter.Union(other, EqBy(f, equality));
+
+    public static ParallelQuery<T> UnionBy<T, D>(this ParallelQuery<T> iter, ParallelQuery<T> other, Func<T, D> f, IEqualityComparer<D> equality)
+        => iter.Union(other, EqBy(f, equality));
+    
+    #endregion
+
 }

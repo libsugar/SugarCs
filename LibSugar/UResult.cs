@@ -22,11 +22,14 @@ public static class UResult<A> where A : unmanaged
 }
 
 [Union, For("T", "E")]
+#if !NETSTANDARD
+[UnionJson]
+#endif
 public enum UResultKind : byte
 {
-    [Of("E")]
+    [Of("E"), UnionJsonName("err")]
     Err,
-    [Of("T")]
+    [Of("T"), UnionJsonName("ok")]
     Ok,
 }
 

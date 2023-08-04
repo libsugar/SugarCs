@@ -1,3 +1,6 @@
+# 0.8.0
+  - Union Generator not support gen JsonConverter
+
 # 0.7.0
   - Add Deref Generator
 
