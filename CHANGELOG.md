@@ -1,3 +1,6 @@
+# 0.9.0
+  - Union Generator add TryResolveSymbol
+
 # 0.8.0
   - Union Generator not support gen JsonConverter
 

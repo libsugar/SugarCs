@@ -1,3 +1,6 @@
+# 0.9.0
+  - 可区分联合生成器添加了 TryResolveSymbol
+
 # 0.8.0
   - 可区分联合生成器现在支持生成 JsonConverter
 

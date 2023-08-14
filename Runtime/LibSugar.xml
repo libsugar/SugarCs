@@ -294,6 +294,13 @@
         <member name="T:LibSugar.OfAttribute">
             <summary>Mark item type</summary>
         </member>
+        <member name="P:LibSugar.OfAttribute.TryResolveSymbol">
+            <summary>
+            Try to resolve the type inside the string
+            <code>[Of("SomeComplexType")]</code>
+            May cause slower compilation
+            </summary>
+        </member>
         <member name="T:LibSugar.OfAttribute`1">
             <summary>Mark item type</summary>
         </member>

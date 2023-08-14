@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
@@ -122,6 +123,7 @@ public class UnionGenerator : IIncrementalGenerator
                         member_name = $"{first_arg.Value}";
                     }
 
+                    // This symbol is not passed to the next stage
                     ITypeSymbol? member_type_sym = null;
                     string? member_type = null;
                     if (attr_m_of is { AttributeClass: { IsGenericType: true, TypeArguments: var targs } })
@@ -141,6 +143,36 @@ public class UnionGenerator : IIncrementalGenerator
                         {
                             member_type = $"{first_arg.Value}";
                             generic_symbols.TryGetValue(member_type, out member_type_sym);
+
+                            if (member_type_sym == null)
+                            {
+                                var try_resolve_symbol = attr_m_of.NamedArguments.AsParallel().AsOrdered().FirstOrDefault(a => a.Key == $"TryResolveSymbol");
+                                if (try_resolve_symbol.Value.Value is true)
+                                {
+                                    try
+                                    {
+                                        var guid = Guid.NewGuid().ToString("N");
+                                        var code = $@"internal class __{guid}_{type_name}
+{{
+    public {member_type} __{guid}_{member_name};
+}}";
+                                        var tree = CSharpSyntaxTree.ParseText($@"{string.Join("\n", usings_base.OrderBy(u => u.Length))}
+{sym.WrapNameSpace(sym.WrapNestedType(code))}
+");
+                                        var comp = CSharpCompilation.Create(guid)
+                                            .AddReferences(compilation.References)
+                                            .AddSyntaxTrees(compilation.SyntaxTrees)
+                                            .AddSyntaxTrees(tree);
+                                        var tmp_sym = (INamedTypeSymbol)comp.GetSymbolsWithName($"__{guid}_{name}").First();
+                                        var member = (IFieldSymbol)tmp_sym.GetMembers($"__{guid}_{member_name}").First();
+                                        member_type_sym = member.Type;
+                                    }
+                                    catch
+                                    {
+                                        // ignore
+                                    }
+                                }
+                            }
                         }
                     }
 

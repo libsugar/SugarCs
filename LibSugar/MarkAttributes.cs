@@ -49,6 +49,13 @@ public class OfAttribute : Attribute
     public Type? Type { get; }
     public string? TypeName { get; }
 
+    /// <summary>
+    /// Try to resolve the type inside the string
+    /// <code>[Of("SomeComplexType")]</code>
+    /// May cause slower compilation
+    /// </summary>
+    public bool TryResolveSymbol { get; set; }
+
     public OfAttribute() { }
 
     public OfAttribute(string type) => TypeName = type;

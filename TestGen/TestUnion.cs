@@ -92,4 +92,13 @@ public partial class TestUnion
         [Of<float>]
         C,
     }
+
+    [Union, For("T")]
+    public enum Union7Kind
+    {
+        [Of("List<T>", TryResolveSymbol = true)]
+        List,
+        [Of("T[]", TryResolveSymbol = true)]
+        Array,
+    }
 }
