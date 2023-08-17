@@ -31,7 +31,7 @@ public struct Moved : IMovable<bool>
         this.isMoved = new(isMoved);
     }
 
-    /// <returns>Return wask moved</returns>
+    /// <returns>Return was moved</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Move() => isMoved.Exchange(true);
 }
