@@ -1,3 +1,6 @@
+# 0.10.0
+  - Remove Union Generator, Alternative: [Sera.Union](https://github.com/sera-net/Sera.Union)
+
 # 0.9.0
   - Union Generator add TryResolveSymbol
 

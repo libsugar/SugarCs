@@ -12,6 +12,7 @@ using System.Collections.ObjectModel;
 #if NET6_0_OR_GREATER
 using System.Text.Json.Nodes;
 #endif
+using System.Diagnostics.CodeAnalysis;
 
 namespace LibSugar;
 
@@ -20,7 +21,14 @@ public static partial class Sugar
     public static void AddOrUpdate<K, V>(this ConcurrentDictionary<K, V> self, K key, V val) where K : notnull =>
         self.AddOrUpdate(key, val, (_, _) => val);
 
-    public static V? TryGet<K, V>(this ConditionalWeakTable<K, V> self, K key) where K : class where V : class =>
+    public static V? TryGet<K,
+#if NETSTANDARD
+        V
+#else
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
+        V
+#endif
+    >(this ConditionalWeakTable<K, V> self, K key) where K : class where V : class =>
         self.TryGetValue(key, out var val) ? val : null;
 
 #if NET6_0_OR_GREATER
@@ -61,7 +69,8 @@ public static partial class SugarClass
     public static T? TryTake<T>(this BlockingCollection<T> self, TimeSpan timeout) where T : class =>
         self.TryTake(out var val, timeout) ? val : null;
 
-    public static T? TryTake<T>(this BlockingCollection<T> self, int millisecondsTimeout, CancellationToken cancellationToken) where T : class =>
+    public static T? TryTake<T>(this BlockingCollection<T> self, int millisecondsTimeout,
+        CancellationToken cancellationToken) where T : class =>
         self.TryTake(out var val, millisecondsTimeout, cancellationToken) ? val : null;
 
     public static T? TryTake<T>(this BlockingCollection<T> self, int millisecondsTimeout) where T : class =>
@@ -105,7 +114,8 @@ public static partial class SugarClass
         self.TryGetValue(key, out var val) ? val : null;
 #endif
 
-    public static ReadOnlyMemory<T>? TryGet<T>(this in ReadOnlySequence<T> self, ref SequencePosition position, bool advance = true) where T : class =>
+    public static ReadOnlyMemory<T>? TryGet<T>(this in ReadOnlySequence<T> self, ref SequencePosition position,
+        bool advance = true) where T : class =>
         self.TryGet(ref position, out var memory, advance) ? memory : null;
 
 #if NET6_0_OR_GREATER
@@ -176,7 +186,8 @@ public static partial class SugarStruct
     public static T? TryTake<T>(this BlockingCollection<T> self, TimeSpan timeout) where T : struct =>
         self.TryTake(out var val, timeout) ? val : null;
 
-    public static T? TryTake<T>(this BlockingCollection<T> self, int millisecondsTimeout, CancellationToken cancellationToken) where T : struct =>
+    public static T? TryTake<T>(this BlockingCollection<T> self, int millisecondsTimeout,
+        CancellationToken cancellationToken) where T : struct =>
         self.TryTake(out var val, millisecondsTimeout, cancellationToken) ? val : null;
 
     public static T? TryTake<T>(this BlockingCollection<T> self, int millisecondsTimeout) where T : struct =>
@@ -213,14 +224,16 @@ public static partial class SugarStruct
     public static T? TryGet<T>(this ImmutableHashSet<T> self, T key) where T : struct =>
         self.TryGetValue(key, out var val) ? val : null;
 
-    public static V? TryGet<K, V>(this ImmutableSortedDictionary<K, V> self, K key) where V : struct where K : notnull =>
+    public static V? TryGet<K, V>(this ImmutableSortedDictionary<K, V> self, K key)
+        where V : struct where K : notnull =>
         self.TryGetValue(key, out var val) ? val : null;
 
     public static T? TryGet<T>(this ImmutableSortedSet<T> self, T key) where T : struct =>
         self.TryGetValue(key, out var val) ? val : null;
 #endif
 
-    public static ReadOnlyMemory<T>? TryGet<T>(this in ReadOnlySequence<T> self, ref SequencePosition position, bool advance = true) where T : struct =>
+    public static ReadOnlyMemory<T>? TryGet<T>(this in ReadOnlySequence<T> self, ref SequencePosition position,
+        bool advance = true) where T : struct =>
         self.TryGet(ref position, out var memory, advance) ? memory : null;
 
 #if NET6_0_OR_GREATER

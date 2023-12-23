@@ -8,7 +8,10 @@ public record struct Borrow<T>(T Value) : IBox<T>, IDeref<T>
     public T Deref => Value;
 
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining | (MethodImplOptions)512)]
     public Borrow<R> Cast<R>() => new((R)(object)Value!);
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining | (MethodImplOptions)512)]
     public Borrow<R?> As<R>() => new(Value is R r ? r : default);
 }
 
@@ -17,8 +20,11 @@ public record struct Owner<T>(T Value) : IBox<T>, IDeref<T>
     public static implicit operator Borrow<T>(Owner<T> s) => new(s.Value);
 
     public T Deref => Value;
-
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining | (MethodImplOptions)512)]
     public Owner<R> Cast<R>() => new((R)(object)Value!);
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining | (MethodImplOptions)512)]
     public Owner<R?> As<R>() => new(Value is R r ? r : default);
 }
 

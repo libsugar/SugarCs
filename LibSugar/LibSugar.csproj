@@ -1,51 +1,52 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-	<Configurations>Debug;Release;Unity</Configurations>
-	<TargetFrameworks>netstandard2.1;net5.0;net6.0;net7.0</TargetFrameworks>
-	<Version>0.9.0</Version>
-    <Nullable>enable</Nullable>
-	<LangVersion>11.0</LangVersion>
-	<PackageProjectUrl>https://github.com/libsugar/SugarCs</PackageProjectUrl>
-	<RepositoryUrl>https://github.com/libsugar/SugarCs</RepositoryUrl>
-	<PackageReadmeFile>README.md</PackageReadmeFile>
-	<PackageLicenseFile>LICENSE</PackageLicenseFile>
-	<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-	<Description>Like syntactic sugar, but is library</Description>
-	<PackageIcon>libsugar.dotnet.png</PackageIcon>
-	<GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <DefineConstants Condition="'$(Configuration)' == 'Unity'">UNITY</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	<NoWarn>CS1591</NoWarn>
-  </PropertyGroup>
+    <PropertyGroup>
+        <Configurations>Debug;Release;Unity</Configurations>
+        <TargetFrameworks>netstandard2.1;net5.0;net6.0;net7.0;net8.0</TargetFrameworks>
+        <Version>0.10.0</Version>
+        <Nullable>enable</Nullable>
+        <LangVersion>12.0</LangVersion>
+        <PackageProjectUrl>https://github.com/libsugar/SugarCs</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/libsugar/SugarCs</RepositoryUrl>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+        <Description>Like syntactic sugar, but is library</Description>
+        <PackageIcon>libsugar.dotnet.png</PackageIcon>
+        <GenerateDocumentationFile>True</GenerateDocumentationFile>
+        <DefineConstants Condition="'$(Configuration)' == 'Unity'">UNITY</DefineConstants>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <IsAotCompatible>true</IsAotCompatible>
+        <NoWarn>CS1591</NoWarn>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="NInt.MinMaxValue" Version="1.1.0" Condition="'$(TargetFramework)' == 'netstandard2.1' And '$(Configuration)' != 'Unity'" />
-	  <PackageReference Include="Ultz.Bcl.Half" Version="1.0.0" Condition="'$(TargetFramework)' == 'netstandard2.1' And '$(Configuration)' != 'Unity'" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" Condition="'$(Configuration)' == 'Unity'" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="NInt.MinMaxValue" Version="1.1.0" Condition="'$(TargetFramework)' == 'netstandard2.1' And '$(Configuration)' != 'Unity'"/>
+        <PackageReference Include="Ultz.Bcl.Half" Version="1.0.0" Condition="'$(TargetFramework)' == 'netstandard2.1' And '$(Configuration)' != 'Unity'"/>
+        <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" Condition="'$(Configuration)' == 'Unity'"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <None Include="..\LICENSE" Pack="true" PackagePath="" />
-	<None Include="..\README.md" Pack="true" PackagePath="" />
-	<None Include="..\libsugar.dotnet.png" Pack="true" PackagePath="\" />
-	<None Include="..\libsuga.socialr.dotnet.png" Pack="true" PackagePath="" />
-	<None Include="..\libsugar.png" Pack="true" PackagePath="" />
-	<None Include="..\libsuga.socialr.png" Pack="true" PackagePath="" />
-  </ItemGroup>
+    <ItemGroup>
+        <None Include="..\LICENSE" Pack="true" PackagePath=""/>
+        <None Include="..\README.md" Pack="true" PackagePath=""/>
+        <None Include="..\libsugar.dotnet.png" Pack="true" PackagePath="\"/>
+        <None Include="..\libsuga.socialr.dotnet.png" Pack="true" PackagePath=""/>
+        <None Include="..\libsugar.png" Pack="true" PackagePath=""/>
+        <None Include="..\libsuga.socialr.png" Pack="true" PackagePath=""/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\LibSugar.CodeGen\LibSugar.CodeGen.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\LibSugar.CodeGen\LibSugar.CodeGen.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+    </ItemGroup>
 
-  <ItemGroup>
-	<None Include="..\LibSugar.CodeGen\bin\Release\netstandard2.0\LibSugar.CodeGen.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"></None>
-  </ItemGroup>
+    <ItemGroup>
+        <None Include="..\LibSugar.CodeGen\bin\Release\netstandard2.0\LibSugar.CodeGen.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
+    </ItemGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Configuration)' == 'Unity' And '$(TargetFramework)' == 'netstandard2.1'">
-    <Exec Command="copy &quot;$(OutDir)\*.*&quot; &quot;$(SolutionDir)\Runtime&quot;" />
-    <Exec Command="copy &quot;..\LibSugar.CodeGen\bin\Release\netstandard2.0\LibSugar.CodeGen.dll&quot; &quot;$(SolutionDir)\Runtime\LibSugar.CodeGen.dll&quot;" />
-    <Exec Command="copy &quot;..\LibSugar.CodeGen\bin\Release\netstandard2.0\LibSugar.CodeGen.pdb&quot; &quot;$(SolutionDir)\Runtime\LibSugar.CodeGen.pdb&quot;" />
-  </Target>
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Configuration)' == 'Unity' And '$(TargetFramework)' == 'netstandard2.1'">
+        <Exec Command="copy &quot;$(OutDir)\*.*&quot; &quot;$(SolutionDir)\Runtime&quot;"/>
+        <Exec Command="copy &quot;..\LibSugar.CodeGen\bin\Release\netstandard2.0\LibSugar.CodeGen.dll&quot; &quot;$(SolutionDir)\Runtime\LibSugar.CodeGen.dll&quot;"/>
+        <Exec Command="copy &quot;..\LibSugar.CodeGen\bin\Release\netstandard2.0\LibSugar.CodeGen.pdb&quot; &quot;$(SolutionDir)\Runtime\LibSugar.CodeGen.pdb&quot;"/>
+    </Target>
 
 </Project>

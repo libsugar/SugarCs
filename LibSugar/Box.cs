@@ -6,7 +6,7 @@ namespace LibSugar;
 /// Pack the value into the box so that it is passed by reference
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public interface IBox<T>
+public interface IBox<out T>
 {
     T Value { get; }
 }

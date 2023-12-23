@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -16,7 +17,8 @@ public abstract class LazyBy<T>
     /// <summary>
     /// Make an assoc Lazy
     /// </summary>
-    public static LazyBy<T> Create<P>(Func<P> selector, Func<T> getter, bool threadSafe = true) => threadSafe ? new Impl<P>(getter, selector) : new ImplSync<P>(getter, selector);
+    public static LazyBy<T> Create<P>(Func<P> selector, Func<T> getter, bool threadSafe = true) =>
+        threadSafe ? new Impl<P>(getter, selector) : new ImplSync<P>(getter, selector);
 
     /// <summary>
     /// Check is the value created
@@ -119,19 +121,32 @@ public static class LazyFunc
     /// <summary>
     /// Make a lazy function
     /// </summary>
-    public static Func<T> Create<T>(Func<T> fn, bool threadSafe = true) => new Fn<T>(fn, threadSafe).Function;
+    public static Func<T> Create<
+#if NETSTANDARD
+        T
+#else
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
+        T
+#endif
+    >(Func<T> fn, bool threadSafe = true) => new Fn<T>(fn, threadSafe).Function;
+
     /// <summary>
     /// Make a lazy function
     /// </summary>
-    public static Func<P1, T> Create<P1, T>(Func<P1, T> fn, bool threadSafe = true) => threadSafe ? new Fn<P1, T>(fn).Function : new FnSync<P1, T>(fn).Function;
+    public static Func<P1, T> Create<P1, T>(Func<P1, T> fn, bool threadSafe = true) =>
+        threadSafe ? new Fn<P1, T>(fn).Function : new FnSync<P1, T>(fn).Function;
+
     /// <summary>
     /// Make a lazy function
     /// </summary>
-    public static Func<P1, P2, T> Create<P1, P2, T>(Func<P1, P2, T> fn, bool threadSafe = true) => threadSafe ? new Fn<P1, P2, T>(fn).Function : new FnSync<P1, P2, T>(fn).Function;
+    public static Func<P1, P2, T> Create<P1, P2, T>(Func<P1, P2, T> fn, bool threadSafe = true) =>
+        threadSafe ? new Fn<P1, P2, T>(fn).Function : new FnSync<P1, P2, T>(fn).Function;
+
     /// <summary>
     /// Make a lazy function
     /// </summary>
-    public static Func<P1, P2, P3, T> Create<P1, P2, P3, T>(Func<P1, P2, P3, T> fn, bool threadSafe = true) => threadSafe ? new Fn<P1, P2, P3, T>(fn).Function : new FnSync<P1, P2, P3, T>(fn).Function;
+    public static Func<P1, P2, P3, T> Create<P1, P2, P3, T>(Func<P1, P2, P3, T> fn, bool threadSafe = true) =>
+        threadSafe ? new Fn<P1, P2, P3, T>(fn).Function : new FnSync<P1, P2, P3, T>(fn).Function;
 
     abstract record FnBase<P, T>
     {
@@ -178,7 +193,14 @@ public static class LazyFunc
         }
     }
 
-    class Fn<T> : Lazy<T>
+    class Fn<
+#if NETSTANDARD
+        T
+#else
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
+        T
+#endif
+    > : Lazy<T>
     {
         public Fn(Func<T> valueFactory, bool threadSafe) : base(valueFactory, threadSafe) { }
 
@@ -187,8 +209,12 @@ public static class LazyFunc
 
     record Fn<P1, T>(Func<P1, T> Getter) : FnBase<P1, T>()
     {
-        public T Function(P1 p1) { lock (locker) return Get(p1) ? lastValue : lastValue = Getter(p1); }
+        public T Function(P1 p1)
+        {
+            lock (locker) return Get(p1) ? lastValue : lastValue = Getter(p1);
+        }
     }
+
     record FnSync<P1, T>(Func<P1, T> Getter) : FnBaseSync<P1, T>()
     {
         public T Function(P1 p1) => Get(p1) ? lastValue : lastValue = Getter(p1);
@@ -196,8 +222,12 @@ public static class LazyFunc
 
     record Fn<P1, P2, T>(Func<P1, P2, T> Getter) : FnBase<(P1, P2), T>()
     {
-        public T Function(P1 p1, P2 p2) { lock (locker) return Get((p1, p2)) ? lastValue : lastValue = Getter(p1, p2); }
+        public T Function(P1 p1, P2 p2)
+        {
+            lock (locker) return Get((p1, p2)) ? lastValue : lastValue = Getter(p1, p2);
+        }
     }
+
     record FnSync<P1, P2, T>(Func<P1, P2, T> Getter) : FnBaseSync<(P1, P2), T>()
     {
         public T Function(P1 p1, P2 p2) => Get((p1, p2)) ? lastValue : lastValue = Getter(p1, p2);
@@ -205,8 +235,12 @@ public static class LazyFunc
 
     record Fn<P1, P2, P3, T>(Func<P1, P2, P3, T> Getter) : FnBase<(P1, P2, P3), T>()
     {
-        public T Function(P1 p1, P2 p2, P3 p3) { lock (locker) return Get((p1, p2, p3)) ? lastValue : lastValue = Getter(p1, p2, p3); }
+        public T Function(P1 p1, P2 p2, P3 p3)
+        {
+            lock (locker) return Get((p1, p2, p3)) ? lastValue : lastValue = Getter(p1, p2, p3);
+        }
     }
+
     record FnSync<P1, P2, P3, T>(Func<P1, P2, P3, T> Getter) : FnBaseSync<(P1, P2, P3), T>()
     {
         public T Function(P1 p1, P2 p2, P3 p3) => Get((p1, p2, p3)) ? lastValue : lastValue = Getter(p1, p2, p3);

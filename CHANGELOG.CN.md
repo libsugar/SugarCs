@@ -1,3 +1,6 @@
+# 0.10.0
+  - 移除了可区分联合生成, 替代品: [Sera.Union](https://github.com/sera-net/Sera.Union)
+
 # 0.9.0
   - 可区分联合生成器添加了 TryResolveSymbol
 

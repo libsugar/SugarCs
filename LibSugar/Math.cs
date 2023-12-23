@@ -641,8 +641,10 @@ public static partial class LibMath
     {
         Contract.Requires(v < 0, "AbsHelper should only be called for negative values! (hack for JIT inlining)");
 #if NETSTANDARD
+        // ReSharper disable once IntVariableOverflow
         if (v == NIntMinMaxValue.MinValue) return Math.Abs(int.MinValue); // throw Overflow
 #else
+        // ReSharper disable once IntVariableOverflow
         if (v == nint.MinValue) return Math.Abs(int.MinValue); // throw Overflow
 #endif
         Contract.EndContractBlock();
